@@ -135,6 +135,9 @@
             materiales,
             semaforo: elements.fields.semaforo.value,
             categoria: elements.fields.categoria.value,
+            año: document.getElementById('año').value,
+            seccion: document.getElementById('seccion').value,
+            color_aula: document.getElementById('color-aula').value,
         };
     }
 
@@ -182,7 +185,9 @@
         const body = {
             title: titulo,
             description: datos.resumen_sesion,
-            parent_code: '',
+            año: datos.año,
+            seccion: datos.seccion,
+            color_aula: datos.color_aula,
             file_url: '',
         };
 

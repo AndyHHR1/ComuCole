@@ -50,6 +50,7 @@
         cardClase: document.getElementById('card-clase'),
         categoriaEmojis: document.getElementById('categoria-emojis'),
         semaforoBadge: document.getElementById('semaforo-badge'),
+        colorAulaBadge: document.getElementById('color-aula-badge'),
         resumenSesion: document.getElementById('resumen_sesion'),
         tarea: document.getElementById('tarea'),
         materialesAlerta: document.getElementById('materiales-alerta'),
@@ -109,6 +110,15 @@
         elements.semaforoBadge.classList.add(semaforoConfig.className);
         elements.semaforoBadge.innerHTML = `${semaforoConfig.emoji} ${semaforoConfig.texto}`;
 
+        if (datos.color_aula) {
+            elements.colorAulaBadge.textContent = `Aula ${datos.color_aula}`;
+            elements.colorAulaBadge.classList.remove('hidden', 'aula-rojo', 'aula-azul', 'aula-verde');
+            elements.colorAulaBadge.classList.add(`aula-${datos.color_aula.toLowerCase()}`);
+        } else {
+            elements.colorAulaBadge.classList.add('hidden');
+            elements.colorAulaBadge.classList.remove('aula-rojo', 'aula-azul', 'aula-verde');
+        }
+
         elements.resumenSesion.textContent = datos.resumen_sesion || 'Sin resumen disponible.';
         elements.tarea.textContent = datos.tarea || 'Sin tarea asignada.';
 
@@ -121,6 +131,27 @@
         } else {
             elements.materialesAlerta.classList.add('hidden');
         }
+
+        resetBotones();
+        showTab('clase');
+    }
+
+        elements.resumenSesion.textContent = datos.resumen_sesion || 'Sin resumen disponible.';
+        elements.tarea.textContent = datos.tarea || 'Sin tarea asignada.';
+
+        const materiales = Array.isArray(datos.materiales) ? datos.materiales : [];
+        if (materiales.length > 0) {
+            elements.materialesLista.innerHTML = materiales
+                .map(material => `<li>${escapeHtml(material)}</li>`)
+                .join('');
+            elements.materialesAlerta.classList.remove('hidden');
+        } else {
+            elements.materialesAlerta.classList.add('hidden');
+        }
+
+        resetBotones();
+        showTab('clase');
+    }
 
         resetBotones();
         showTab('clase');
@@ -294,7 +325,7 @@
         }
 
         try {
-            const response = await fetch(`${API_BASE_URL}/me/tasks`, {
+            const response = await fetch(`${API_BASE_URL}/me`, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
@@ -306,13 +337,31 @@
                     localStorage.removeItem('comucole_rol');
                     localStorage.removeItem('comucole_code');
                     localStorage.removeItem('comucole_full_name');
+                    localStorage.removeItem('comucole_año');
+                    localStorage.removeItem('comucole_seccion');
+                    localStorage.removeItem('comucole_color_aula');
                     window.location.href = '/';
                     return;
                 }
                 throw new Error(`Error ${response.status}`);
             }
 
-            const data = await response.json();
+            const meData = await response.json();
+            if (meData.año) localStorage.setItem('comucole_año', meData.año);
+            if (meData.seccion) localStorage.setItem('comucole_seccion', meData.seccion);
+            if (meData.color_aula) localStorage.setItem('comucole_color_aula', meData.color_aula);
+
+            const tasksResponse = await fetch(`${API_BASE_URL}/me/tasks`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!tasksResponse.ok) {
+                throw new Error(`Error ${tasksResponse.status}`);
+            }
+
+            const data = await tasksResponse.json();
             const tasks = data.tasks || [];
 
             if (tasks.length === 0) {
@@ -327,6 +376,7 @@
                 materiales: [],
                 semaforo: 'amarillo',
                 categoria: 'cognitivo',
+                color_aula: ultimaTarea.color_aula || localStorage.getItem('comucole_color_aula'),
             });
         } catch (error) {
             console.error('Error cargando tareas:', error);

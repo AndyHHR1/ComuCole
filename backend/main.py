@@ -46,15 +46,9 @@ async def get_me(current_user: User = Depends(get_current_user)) -> dict:
         "code": current_user.code,
         "role": current_user.role.value,
         "full_name": current_user.full_name,
-    }
-
-
-@app.get("/me")
-async def get_me(current_user: User = Depends(get_current_user)) -> dict:
-    return {
-        "code": current_user.code,
-        "role": current_user.role.value,
-        "full_name": current_user.full_name,
+        "año": current_user.año,
+        "seccion": current_user.seccion.value if current_user.seccion else None,
+        "color_aula": current_user.color_aula.value if current_user.color_aula else None,
     }
 
 
@@ -74,6 +68,9 @@ async def register(
     password = data.get("password")
     role = data.get("role")
     full_name = data.get("full_name")
+    año = data.get("año")
+    seccion = data.get("seccion")
+    color_aula = data.get("color_aula")
 
     if not code or not password or not role:
         raise HTTPException(status_code=400, detail="Faltan campos requeridos")
@@ -91,11 +88,27 @@ async def register(
         role=UserRole(role),
         full_name=full_name,
     )
+
+    if role == "parent":
+        if año:
+            user.año = int(año)
+        if seccion:
+            user.seccion = Seccion(seccion)
+        if color_aula:
+            user.color_aula = ColorAula(color_aula)
+
     db.add(user)
     db.commit()
     db.refresh(user)
 
-    return {"ok": True, "user_id": user.id, "role": user.role.value}
+    return {
+        "ok": True,
+        "user_id": user.id,
+        "role": user.role.value,
+        "año": user.año,
+        "seccion": user.seccion.value if user.seccion else None,
+        "color_aula": user.color_aula.value if user.color_aula else None,
+    }
 
 
 @app.post("/login")
@@ -195,7 +208,18 @@ async def get_my_tasks(
     current_user: User = Depends(get_current_parent),
     db: Session = Depends(get_db),
 ) -> dict:
-    tasks = db.query(Task).filter(Task.parent_id == current_user.id).all()
+    query = db.query(Task)
+
+    if current_user.año and current_user.seccion and current_user.color_aula:
+        query = query.filter(
+            (Task.año == current_user.año)
+            & (Task.seccion == current_user.seccion)
+            & (Task.color_aula == current_user.color_aula)
+        )
+    else:
+        query = query.filter(Task.parent_id == current_user.id)
+
+    tasks = query.all()
     return {
         "tasks": [
             {
@@ -204,6 +228,9 @@ async def get_my_tasks(
                 "description": t.description,
                 "status": t.status,
                 "points": t.points,
+                "año": t.año,
+                "seccion": t.seccion.value if t.seccion else None,
+                "color_aula": t.color_aula.value if t.color_aula else None,
                 "created_at": t.created_at.isoformat() if t.created_at else None,
             }
             for t in tasks
@@ -220,23 +247,21 @@ async def create_task(
     data = await request.json()
     title = data.get("title")
     description = data.get("description")
-    parent_code = data.get("parent_code")
+    año = data.get("año")
+    seccion = data.get("seccion")
+    color_aula = data.get("color_aula")
     file_url = data.get("file_url")
 
     if not title:
         raise HTTPException(status_code=400, detail="El título es requerido")
 
-    parent_id = None
-    if parent_code:
-        parent = db.query(User).filter(User.code == parent_code, User.role == UserRole.parent).first()
-        if parent:
-            parent_id = parent.id
-
     task = Task(
         title=title,
         description=description,
         teacher_id=current_user.id,
-        parent_id=parent_id,
+        año=int(año) if año else None,
+        seccion=seccion,
+        color_aula=color_aula,
         file_url=file_url,
         status="pending",
         points=0,
@@ -250,7 +275,9 @@ async def create_task(
         "task_id": task.id,
         "title": task.title,
         "description": task.description,
-        "parent_id": task.parent_id,
+        "año": task.año,
+        "seccion": task.seccion.value if task.seccion else None,
+        "color_aula": task.color_aula.value if task.color_aula else None,
         "status": task.status,
     }
 
