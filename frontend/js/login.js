@@ -13,10 +13,6 @@
         localStorage.setItem('comucole_rol', rol);
     }
 
-    function getRol() {
-        return localStorage.getItem('comucole_rol');
-    }
-
     function redirigir(rol) {
         setRol(rol);
         if (rol === ROL_DOCENTE) {
@@ -27,16 +23,6 @@
     }
 
     function init() {
-        const rol = getRol();
-        if (rol === ROL_DOCENTE) {
-            window.location.href = '/docente.html';
-            return;
-        }
-        if (rol === ROL_PADRE) {
-            window.location.href = '/padre.html';
-            return;
-        }
-
         elements.btnDocente.addEventListener('click', () => redirigir(ROL_DOCENTE));
         elements.btnPadre.addEventListener('click', () => redirigir(ROL_PADRE));
     }
