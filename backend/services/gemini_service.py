@@ -11,15 +11,11 @@ logger = logging.getLogger(__name__)
 PROMPT_BASE = """Eres un asistente especializado en análisis de documentos escolares para la plataforma ComuCole.
 A continuación recibirás el texto crudo extraído de un documento .docx de planificación docente.
 
-IMPORTANTE: Este documento tiene una estructura fija. Debes buscar y procesar estas secciones en este orden:
+Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON válido (sin markdown, sin ```json, sin texto adicional):
 
-A. "RESUMEN DE LA SESIÓN": Busca una sección llamada "DESARROLLO DE LA ACTIVIDAD". Dentro de esa sección, extrae TODO el contenido que describe lo que los niños hicieron, incluyendo:
-   - INICIO: qué hizo el docente, qué preguntas formuló, qué materiales presentó
-   - DESARROLLO: qué actividades realizaron los niños, cómo trabajaron, qué aprendieron
-   - CIERRE: la reflexión final y la actividad/tarea para casa
-   Escribe un resumen amigable y ejecutivo de máximo 2 párrafos que cuente qué hicieron los niños en la sesión.
+1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos). Busca una sección llamada "DESARROLLO DE LA ACTIVIDAD" o "DESARROLLO DE LAS ACTIVIDADES DE APRENDIZAJE". Dentro de esa sección, hay subapartados como "INICIO", "DESARROLLO" y "CIERRE". Resume qué hicieron los niños en la sesión, qué aprendieron y cómo trabajaron. NO digas que no hay información si ves esos subapartados.
 
-B. "TAREA": Busca en el apartado "CIERRE" la actividad concreta para la casa. REGLAS:
+2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE". REGLAS:
    - Las preguntas de reflexión (ej: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?") NO son la tarea.
    - Frases como "Escucho sus respuestas", "retroalimento", "reforzamos ideas" NO son la tarea.
    - La tarea real suele venir DESPUÉS de eso, frecuentemente con frases como:
@@ -30,19 +26,17 @@ B. "TAREA": Busca en el apartado "CIERRE" la actividad concreta para la casa. RE
      * "Actividad para casa: ..."
      * "Se entrega una ficha/hoja gráfica..."
    - Extrae SOLO la instrucción concreta para casa.
-   - Si no hay tarea, devuelve "".
+   - Si no encuentras ninguna actividad concreta para la casa, devuelve "".
 
-C. "MATERIALES": Busca en "RECURSOS Y MATERIALES SUGERIDOS" o en el texto items como:
-   "Gorro mágico", "Imágenes", "Limpiatipo", "Semáforo", "Tarjetas", "Hoja gráfica", "Fichas", etc.
-   Devuelve una lista con cada material encontrado. Si no hay, devuelve [].
+3. "materiales": Lista de útiles o recursos. Busca en secciones como "RECURSOS Y MATERIALES SUGERIDOS" o items como "Gorro mágico", "Imágenes", "Limpiatipo", "Semáforo", "Tarjetas", "Hoja gráfica", "Fichas", etc. Devuelve cada material como un item separado. Si no hay materiales, devuelve [].
 
-D. "SEMAFORO": Clasifica el tiempo de entrega:
+4. "semaforo": Clasifica el tiempo de entrega en UNO de estos 3 strings exactos:
    - "rojo" -> Es para ya / mucha carga
    - "amarillo" -> Tienes tiempo / plazo moderado
    - "verde" -> Vas bien de tiempo / plazo amplio
 
-E. "CATEGORIA": Clasifica el tipo de trabajo:
-   - "cognitivo" -> Estudio, lectura, matemática, reconocer semejanzas y diferencias, observar imágenes
+5. "categoria": Clasifica el tipo de trabajo en UNO de estos 3 strings exactos:
+   - "cognitivo" -> Estudio, lectura, matemática, reconocer semejanzas y diferencias, observar imágenes, comunicarse oralmente
    - "manual" -> Maquetas, arte, materiales, recortar, pegar, armar
    - "psicomotriz" -> Educación física o actividades motrices
 
@@ -55,6 +49,7 @@ REGLAS ESTRICTAS:
 
 TEXTO DEL DOCUMENTO:
 """
+
 
 
 
