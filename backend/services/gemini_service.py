@@ -2,7 +2,7 @@ import json
 import os
 import re
 
-import google.generativeai as genai
+from google import genai
 
 
 PROMPT_BASE = """Eres un asistente especializado en análisis de documentos escolares para la plataforma ComuCole.
@@ -49,11 +49,10 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
     if not api_key:
         raise RuntimeError("GOOGLE_API_KEY no está definida en las variables de entorno.")
 
-    genai.configure(api_key=api_key)
-    modelo = genai.GenerativeModel("gemini-1.5-flash")
+    cliente = genai.Client(api_key=api_key)
 
     prompt = PROMPT_BASE + texto_crudo
-    respuesta = modelo.generate_content(prompt)
+    respuesta = cliente.models.generate_content(model="gemini-1.5-flash", contents=prompt)
     texto_respuesta = respuesta.text
 
     json_limpio = _limpiar_json_respuesta(texto_respuesta)
