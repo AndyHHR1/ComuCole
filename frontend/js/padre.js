@@ -67,6 +67,8 @@
     let misPuntos = 0;
     let revisadaMarcada = false;
     let cumplidaMarcada = false;
+    let ultimoTaskId = null;
+    let temporizadorRefresco = null;
 
     function showScreen(name) {
         Object.values(elements.screens).forEach(screen => screen.classList.remove('active'));
@@ -131,27 +133,6 @@
         } else {
             elements.materialesAlerta.classList.add('hidden');
         }
-
-        resetBotones();
-        showTab('clase');
-    }
-
-        elements.resumenSesion.textContent = datos.resumen_sesion || 'Sin resumen disponible.';
-        elements.tarea.textContent = datos.tarea || 'Sin tarea asignada.';
-
-        const materiales = Array.isArray(datos.materiales) ? datos.materiales : [];
-        if (materiales.length > 0) {
-            elements.materialesLista.innerHTML = materiales
-                .map(material => `<li>${escapeHtml(material)}</li>`)
-                .join('');
-            elements.materialesAlerta.classList.remove('hidden');
-        } else {
-            elements.materialesAlerta.classList.add('hidden');
-        }
-
-        resetBotones();
-        showTab('clase');
-    }
 
         resetBotones();
         showTab('clase');
@@ -370,17 +351,49 @@
             }
 
             const ultimaTarea = tasks[tasks.length - 1];
+            ultimoTaskId = ultimaTarea.id;
             renderizarClase({
                 resumen_sesion: ultimaTarea.description || '',
                 tarea: ultimaTarea.title || '',
-                materiales: [],
-                semaforo: 'amarillo',
-                categoria: 'cognitivo',
+                materiales: Array.isArray(ultimaTarea.materiales) ? ultimaTarea.materiales : [],
+                semaforo: ultimaTarea.semaforo || 'amarillo',
+                categoria: ultimaTarea.categoria || 'cognitivo',
                 color_aula: ultimaTarea.color_aula || localStorage.getItem('comucole_color_aula'),
             });
         } catch (error) {
             console.error('Error cargando tareas:', error);
             showScreen('carga');
+        }
+    }
+
+    async function verificarNuevasPublicaciones() {
+        const token = localStorage.getItem('comucole_token');
+        if (!token) return;
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/me/tasks`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+            if (!response.ok) return;
+
+            const data = await response.json();
+            const tasks = data.tasks || [];
+            if (tasks.length === 0) return;
+
+            const nuevaUltima = tasks[tasks.length - 1];
+            if (nuevaUltima.id !== ultimoTaskId) {
+                ultimoTaskId = nuevaUltima.id;
+                renderizarClase({
+                    resumen_sesion: nuevaUltima.description || '',
+                    tarea: nuevaUltima.title || '',
+                    materiales: Array.isArray(nuevaUltima.materiales) ? nuevaUltima.materiales : [],
+                    semaforo: nuevaUltima.semaforo || 'amarillo',
+                    categoria: nuevaUltima.categoria || 'cognitivo',
+                    color_aula: nuevaUltima.color_aula || localStorage.getItem('comucole_color_aula'),
+                });
+            }
+        } catch (error) {
+            console.error('Error verificando nuevas publicaciones:', error);
         }
     }
 
@@ -441,6 +454,8 @@
         setTimeout(() => {
             cargarDatosDeDemo();
         }, 600);
+
+        temporizadorRefresco = setInterval(verificarNuevasPublicaciones, 15000);
     }
 
     if (document.readyState === 'loading') {

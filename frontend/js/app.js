@@ -188,6 +188,9 @@
             año: datos.año,
             seccion: datos.seccion,
             color_aula: datos.color_aula,
+            categoria: datos.categoria,
+            semaforo: datos.semaforo,
+            materiales: datos.materiales,
         };
 
         const response = await fetch(`${API_BASE_URL}/tasks`, {

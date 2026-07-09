@@ -1,5 +1,6 @@
 import logging
 import os
+import json
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Depends
@@ -25,6 +26,31 @@ from backend.services.gemini_service import procesar_documento_con_gemini
 
 logger = logging.getLogger(__name__)
 
+
+def _parse_materiales(raw) -> list[str]:
+    if not raw:
+        return []
+    if isinstance(raw, list):
+        return [str(m) for m in raw if str(m).strip()]
+    raw = str(raw).strip()
+    if not raw:
+        return []
+    try:
+        data = json.loads(raw)
+        if isinstance(data, list):
+            return [str(m) for m in data if str(m).strip()]
+    except (json.JSONDecodeError, TypeError):
+        pass
+    return [line.strip() for line in raw.split("\n") if line.strip()]
+
+
+def _serialize_materiales(materiales) -> str | None:
+    if isinstance(materiales, list):
+        return json.dumps([str(m) for m in materiales], ensure_ascii=False)
+    if materiales:
+        return str(materiales)
+    return None
+
 app = FastAPI(
     title="ComuCole API",
     description="Backend MVP para procesamiento de documentos escolares con IA.",
@@ -47,6 +73,9 @@ def startup():
             conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS "año" INTEGER')
             conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS seccion VARCHAR')
             conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS color_aula VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS categoria VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS semaforo VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS materiales TEXT')
     except Exception:
         logger.exception("[startup] migracion de columnas año/seccion/color_aula fallo")
 
@@ -246,6 +275,9 @@ async def get_my_tasks(
                 "año": t.año,
                 "seccion": t.seccion,
                 "color_aula": t.color_aula,
+                "categoria": t.categoria,
+                "semaforo": t.semaforo,
+                "materiales": _parse_materiales(t.materiales),
                 "created_at": t.created_at.isoformat() if t.created_at else None,
             }
             for t in tasks
@@ -265,6 +297,9 @@ async def create_task(
     año = data.get("año")
     seccion = data.get("seccion")
     color_aula = data.get("color_aula")
+    categoria = data.get("categoria")
+    semaforo = data.get("semaforo")
+    materiales = data.get("materiales")
 
     logger.info(f"[tasks] intento crear tarea teacher={current_user.code} año={año} seccion={seccion} color_aula={color_aula}")
 
@@ -287,6 +322,9 @@ async def create_task(
             año=año_int,
             seccion=seccion,
             color_aula=color_aula,
+            categoria=categoria,
+            semaforo=semaforo,
+            materiales=_serialize_materiales(materiales),
             status="pending",
             points=0,
         )
@@ -305,6 +343,9 @@ async def create_task(
         "año": task.año,
         "seccion": task.seccion,
         "color_aula": task.color_aula,
+        "categoria": task.categoria,
+        "semaforo": task.semaforo,
+        "materiales": _parse_materiales(task.materiales),
         "status": task.status,
     }
 
@@ -323,6 +364,9 @@ async def get_teacher_tasks(
                 "description": t.description,
                 "status": t.status,
                 "points": t.points,
+                "categoria": t.categoria,
+                "semaforo": t.semaforo,
+                "materiales": _parse_materiales(t.materiales),
                 "created_at": t.created_at.isoformat() if t.created_at else None,
             }
             for t in tasks
