@@ -260,8 +260,6 @@ async def get_my_tasks(
             & (Task.seccion == current_user.seccion)
             & (Task.color_aula == current_user.color_aula)
         )
-    else:
-        query = query.filter(Task.parent_id == current_user.id)
 
     tasks = query.all()
     return {
