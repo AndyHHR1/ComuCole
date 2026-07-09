@@ -92,7 +92,6 @@ def _intentar_generate_content(cliente, modelo: str, prompt: str, max_reintentos
             respuesta = cliente.models.generate_content(
                 model=modelo,
                 contents=prompt,
-                config={"timeout": 120},
             )
             return respuesta.text
         except genai_errors.ClientError as exc:
