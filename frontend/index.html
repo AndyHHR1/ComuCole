@@ -17,19 +17,45 @@
                     <h1 class="logo-text">ComuCole</h1>
                 </div>
                 <p class="login-subtitle">Plataforma de Comunicación Escolar</p>
-                <p class="login-hint">Selecciona tu perfil para continuar</p>
 
-                <div class="login-actions">
-                    <button type="button" id="btn-docente" class="btn-login btn-docente">
-                        <span class="btn-login-icon">👩‍🏫</span>
-                        <span class="btn-login-label">Soy Docente</span>
-                        <span class="btn-login-desc">Subir planificación y publicar actividades</span>
-                    </button>
-                    <button type="button" id="btn-padre" class="btn-login btn-padre">
-                        <span class="btn-login-icon">👨‍👩‍👧</span>
-                        <span class="btn-login-label">Soy Padre de Familia</span>
-                        <span class="btn-login-desc">Ver la clase del día y el ranking</span>
-                    </button>
+                <div id="screen-rol" class="screen active">
+                    <p class="login-hint">Selecciona tu perfil para continuar</p>
+                    <div class="login-actions">
+                        <button type="button" id="btn-docente" class="btn-login btn-docente">
+                            <span class="btn-login-icon">👩‍🏫</span>
+                            <span class="btn-login-label">Soy Docente</span>
+                            <span class="btn-login-desc">Subir planificación y publicar actividades</span>
+                        </button>
+                        <button type="button" id="btn-padre" class="btn-login btn-padre">
+                            <span class="btn-login-icon">👨‍👩‍👧</span>
+                            <span class="btn-login-label">Soy Padre de Familia</span>
+                            <span class="btn-login-desc">Ver la clase del día y el ranking</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="screen-auth" class="screen">
+                    <p class="login-hint" id="auth-hint">Inicia sesión con tu código</p>
+                    <form id="form-auth" class="form-edicion" autocomplete="off">
+                        <div class="form-group">
+                            <label for="auth-code">Código</label>
+                            <input type="text" id="auth-code" placeholder="Ej: DOC001" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="auth-password">Contraseña</label>
+                            <input type="password" id="auth-password" placeholder="Tu contraseña" required>
+                        </div>
+                        <div class="form-group hidden" id="group-nombre">
+                            <label for="auth-nombre">Nombre completo</label>
+                            <input type="text" id="auth-nombre" placeholder="Ej: Juan Pérez">
+                        </div>
+                        <div class="form-actions">
+                            <button type="button" id="btn-volver" class="btn btn-secondary">Volver</button>
+                            <button type="button" id="btn-login" class="btn btn-primary">Iniciar Sesión</button>
+                            <button type="button" id="btn-register" class="btn btn-primary hidden">Registrarse</button>
+                        </div>
+                        <p id="auth-error" class="error-msg hidden"></p>
+                    </form>
                 </div>
             </div>
         </main>
