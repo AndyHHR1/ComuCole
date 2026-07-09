@@ -1,0 +1,54 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+env.bak/
+venv.bak/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+dist/
+build/
+eggs/
+.eggs/
+wheels/
+
+# FastAPI / Uvicorn
+*.log
+logs/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+docker-compose.override.yml
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Secrets / Keys
+*.pem
+*.key
+
+# Node (si en el futuro hay build tooling)
+node_modules/
+.npm/
+
+# Misc
+*.tmp
+*.bak
+*.orig
