@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from backend.config import FRONTEND_DIR
 from backend.database.session import Base, engine, get_db
 from backend.models.task import Task
-from backend.models.user import User, UserRole
+from backend.models.user import User
 from backend.models.schemas import ComuColeResponse
 from backend.services.auth import (
     hash_password,
