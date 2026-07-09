@@ -3,11 +3,15 @@ import os
 from collections import defaultdict
 from pathlib import Path
 
-from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Depends
 from fastapi.responses import JSONResponse
 from fastapi.staticfiles import StaticFiles
+from sqlalchemy.orm import Session
 
 from backend.config import FRONTEND_DIR
+from backend.database.session import Base, engine, get_db
+from backend.models.user import User, UserRole
+from backend.models.task import Task
 from backend.models.schemas import ComuColeResponse
 from backend.services.docx_processor import extraer_texto_docx
 from backend.services.gemini_service import procesar_documento_con_gemini
@@ -20,18 +24,19 @@ app = FastAPI(
     version="0.1.0",
 )
 
-ranking_store: dict[str, int] = defaultdict(int)
+
+@app.on_event("startup")
+def startup():
+    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/health")
 def health() -> dict[str, str]:
-    """Health check para monitoreo."""
     return {"status": "ok"}
 
 
 @app.post("/procesar-docx", response_model=ComuColeResponse)
 async def procesar_docx(archivo: UploadFile = File(...)) -> JSONResponse:
-    """Procesa un .docx cargado por el docente y devuelve JSON estructurado."""
     if not archivo.filename.endswith(".docx"):
         raise HTTPException(status_code=400, detail="Solo se aceptan archivos .docx")
 
@@ -58,33 +63,39 @@ async def procesar_docx(archivo: UploadFile = File(...)) -> JSONResponse:
 
 
 @app.post("/marcar-revisada")
-async def marcar_revisada(request: Request) -> dict[str, bool | int]:
-    """Marca la tarea como revisada y suma 1 punto al ranking."""
+async def marcar_revisada(request: Request, db: Session = Depends(get_db)) -> dict[str, bool | int]:
     data = await request.json()
     parent_id = data.get("parent_id", "anon")
-    ranking_store[parent_id] += 1
-    return {"ok": True, "puntos": ranking_store[parent_id]}
+    user = db.query(User).filter(User.code == str(parent_id)).first()
+    if user and user.role == UserRole.parent:
+        user.points = (user.points or 0) + 1
+        db.commit()
+        db.refresh(user)
+        return {"ok": True, "puntos": user.points or 0}
+    return {"ok": True, "puntos": 0}
 
 
 @app.post("/marcar-cumplida")
-async def marcar_cumplida(request: Request) -> dict[str, bool | int]:
-    """Marca la tarea como cumplida y suma 2 puntos al ranking."""
+async def marcar_cumplida(request: Request, db: Session = Depends(get_db)) -> dict[str, bool | int]:
     data = await request.json()
     parent_id = data.get("parent_id", "anon")
-    ranking_store[parent_id] += 2
-    return {"ok": True, "puntos": ranking_store[parent_id]}
+    user = db.query(User).filter(User.code == str(parent_id)).first()
+    if user and user.role == UserRole.parent:
+        user.points = (user.points or 0) + 2
+        db.commit()
+        db.refresh(user)
+        return {"ok": True, "puntos": user.points or 0}
+    return {"ok": True, "puntos": 0}
 
 
 @app.get("/ranking")
-async def get_ranking() -> dict[str, list[dict[str, int | str]]]:
-    """Obtiene la tabla de posiciones del aula."""
-    ordenado = sorted(ranking_store.items(), key=lambda x: x[1], reverse=True)
-    return {
-        "ranking": [
-            {"puesto": i + 1, "id": pid, "puntos": pts}
-            for i, (pid, pts) in enumerate(ordenado[:20])
-        ]
-    }
+async def get_ranking(db: Session = Depends(get_db)) -> dict[str, list[dict[str, int | str]]]:
+    padres = db.query(User).filter(User.role == UserRole.parent).all()
+    ranking = [
+        {"puesto": i + 1, "id": u.code, "puntos": u.points or 0}
+        for i, u in enumerate(sorted(padres, key=lambda x: x.points or 0, reverse=True)[:20])
+    ]
+    return {"ranking": ranking}
 
 
 if FRONTEND_DIR.exists():
