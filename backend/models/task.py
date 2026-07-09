@@ -1,6 +1,5 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Enum
+from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey
 from sqlalchemy.sql import func
-import enum
 from backend.database.session import Base
 
 
@@ -12,8 +11,8 @@ class Task(Base):
     description = Column(Text, nullable=True)
     teacher_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     año = Column(Integer, nullable=True)
-    seccion = Column(Enum("A", "B", "C", name="seccion_enum"), nullable=True)
-    color_aula = Column(Enum("Rojo", "Azul", "Verde", name="color_aula_enum"), nullable=True)
+    seccion = Column(String, nullable=True)
+    color_aula = Column(String, nullable=True)
     status = Column(String, default="pending")
     points = Column(Integer, default=0)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

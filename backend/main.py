@@ -44,11 +44,11 @@ def startup():
 async def get_me(current_user: User = Depends(get_current_user)) -> dict:
     return {
         "code": current_user.code,
-        "role": current_user.role.value,
+        "role": current_user.role,
         "full_name": current_user.full_name,
         "año": current_user.año,
-        "seccion": current_user.seccion.value if current_user.seccion else None,
-        "color_aula": current_user.color_aula.value if current_user.color_aula else None,
+        "seccion": current_user.seccion,
+        "color_aula": current_user.color_aula,
     }
 
 
@@ -85,7 +85,7 @@ async def register(
     user = User(
         code=code,
         password_hash=hash_password(password),
-        role=UserRole(role),
+        role=role,
         full_name=full_name,
     )
 
@@ -93,9 +93,9 @@ async def register(
         if año:
             user.año = int(año)
         if seccion:
-            user.seccion = Seccion(seccion)
+            user.seccion = seccion
         if color_aula:
-            user.color_aula = ColorAula(color_aula)
+            user.color_aula = color_aula
 
     db.add(user)
     db.commit()
@@ -104,10 +104,10 @@ async def register(
     return {
         "ok": True,
         "user_id": user.id,
-        "role": user.role.value,
+        "role": user.role,
         "año": user.año,
-        "seccion": user.seccion.value if user.seccion else None,
-        "color_aula": user.color_aula.value if user.color_aula else None,
+        "seccion": user.seccion,
+        "color_aula": user.color_aula,
     }
 
 
@@ -129,17 +129,17 @@ async def login(
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
 
-    if role and user.role.value != role:
+    if role and user.role != role:
         raise HTTPException(
             status_code=403,
-            detail=f"Esta cuenta está registrada como {user.role.value}. Usa el perfil correcto.",
+            detail=f"Esta cuenta está registrada como {user.role}. Usa el perfil correcto.",
         )
 
     access_token = create_access_token(data={"sub": user.code})
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "role": user.role.value,
+        "role": user.role,
         "full_name": user.full_name,
     }
 
@@ -195,7 +195,7 @@ async def marcar_cumplida(
 
 @app.get("/ranking")
 async def get_ranking(db: Session = Depends(get_db)) -> dict[str, list[dict[str, int | str]]]:
-    padres = db.query(User).filter(User.role == UserRole.parent).all()
+    padres = db.query(User).filter(User.role == "parent").all()
     ranking = [
         {"puesto": i + 1, "id": u.code, "puntos": u.points or 0}
         for i, u in enumerate(sorted(padres, key=lambda x: x.points or 0, reverse=True)[:20])
@@ -229,8 +229,8 @@ async def get_my_tasks(
                 "status": t.status,
                 "points": t.points,
                 "año": t.año,
-                "seccion": t.seccion.value if t.seccion else None,
-                "color_aula": t.color_aula.value if t.color_aula else None,
+                "seccion": t.seccion,
+                "color_aula": t.color_aula,
                 "created_at": t.created_at.isoformat() if t.created_at else None,
             }
             for t in tasks
@@ -276,8 +276,8 @@ async def create_task(
         "title": task.title,
         "description": task.description,
         "año": task.año,
-        "seccion": task.seccion.value if task.seccion else None,
-        "color_aula": task.color_aula.value if task.color_aula else None,
+        "seccion": task.seccion,
+        "color_aula": task.color_aula,
         "status": task.status,
     }
 
