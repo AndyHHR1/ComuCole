@@ -8,43 +8,49 @@
     let selectedRole = null;
     let isRegisterMode = false;
 
+    const $ = (id) => document.getElementById(id);
+
     const elements = {
-        screenRol: document.getElementById('screen-rol'),
-        screenAuth: document.getElementById('screen-auth'),
-        btnDocente: document.getElementById('btn-docente'),
-        btnPadre: document.getElementById('btn-padre'),
-        btnVolver: document.getElementById('btn-volver'),
-        btnLogin: document.getElementById('btn-login'),
-        btnRegister: document.getElementById('btn-register'),
-        btnToggleMode: document.getElementById('btn-toggle-mode'),
-        formAuth: document.getElementById('form-auth'),
-        authHint: document.getElementById('auth-hint'),
-        authCode: document.getElementById('auth-code'),
-        authPassword: document.getElementById('auth-password'),
-        authNombre: document.getElementById('auth-nombre'),
-        groupNombre: document.getElementById('group-nombre'),
-        authAño: document.getElementById('auth-año'),
-        authSeccion: document.getElementById('auth-seccion'),
-        authColorAula: document.getElementById('auth-color-aula'),
-        groupAño: document.getElementById('group-año'),
-        groupSeccion: document.getElementById('group-seccion'),
-        groupColorAula: document.getElementById('group-color-aula'),
-        authError: document.getElementById('auth-error'),
+        screenRol: $('screen-rol'),
+        screenAuth: $('screen-auth'),
+        btnDocente: $('btn-docente'),
+        btnPadre: $('btn-padre'),
+        btnVolver: $('btn-volver'),
+        btnLogin: $('btn-login'),
+        btnRegister: $('btn-register'),
+        btnToggleMode: $('btn-toggle-mode'),
+        formAuth: $('form-auth'),
+        authHint: $('auth-hint'),
+        authCode: $('auth-code'),
+        authPassword: $('auth-password'),
+        authNombre: $('auth-nombre'),
+        groupNombre: $('group-nombre'),
+        authAño: $('auth-año'),
+        authSeccion: $('auth-seccion'),
+        authColorAula: $('auth-color-aula'),
+        groupAño: $('group-año'),
+        groupSeccion: $('group-seccion'),
+        groupColorAula: $('group-color-aula'),
+        authError: $('auth-error'),
     };
 
     function showScreen(name) {
-        elements.screenRol.classList.toggle('active', name === 'rol');
-        elements.screenAuth.classList.toggle('active', name === 'auth');
+        elements.screenRol?.classList.toggle('active', name === 'rol');
+        elements.screenAuth?.classList.toggle('active', name === 'auth');
     }
 
     function setError(msg) {
-        elements.authError.textContent = msg;
-        elements.authError.classList.remove('hidden');
+        if (elements.authError) {
+            elements.authError.textContent = msg;
+            elements.authError.classList.remove('hidden');
+        }
     }
 
     function clearError() {
-        elements.authError.textContent = '';
-        elements.authError.classList.add('hidden');
+        if (elements.authError) {
+            elements.authError.textContent = '';
+            elements.authError.classList.add('hidden');
+        }
     }
 
     function setMode(register) {
@@ -52,9 +58,15 @@
         elements.btnLogin?.classList.toggle('hidden', register);
         elements.btnRegister?.classList.toggle('hidden', !register);
         elements.groupNombre?.classList.toggle('hidden', !register);
-        elements.groupAño?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
-        elements.groupSeccion?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
-        elements.groupColorAula?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
+        if (selectedRole === ROL_PADRE) {
+            elements.groupAño?.classList.toggle('hidden', !register);
+            elements.groupSeccion?.classList.toggle('hidden', !register);
+            elements.groupColorAula?.classList.toggle('hidden', !register);
+        } else {
+            elements.groupAño?.classList.add('hidden');
+            elements.groupSeccion?.classList.add('hidden');
+            elements.groupColorAula?.classList.add('hidden');
+        }
         if (elements.authHint) {
             elements.authHint.textContent = register ? 'Completa tus datos para registrarte' : 'Inicia sesión con tu código';
         }
@@ -72,12 +84,12 @@
         e.preventDefault();
         clearError();
 
-        const code = elements.authCode.value.trim();
-        const password = elements.authPassword.value.trim();
-        const nombre = elements.authNombre.value.trim();
-        const año = elements.authAño.value;
-        const seccion = elements.authSeccion.value;
-        const colorAula = elements.authColorAula.value;
+        const code = elements.authCode?.value?.trim() || '';
+        const password = elements.authPassword?.value?.trim() || '';
+        const nombre = elements.authNombre?.value?.trim() || '';
+        const año = elements.authAño?.value || '';
+        const seccion = elements.authSeccion?.value || '';
+        const colorAula = elements.authColorAula?.value || '';
 
         if (!code || !password) {
             setError('Completa código y contraseña');
@@ -130,11 +142,11 @@
                 return;
             } else if (isRegisterMode) {
                 setMode(false);
-                elements.authPassword.value = '';
-                elements.authNombre.value = '';
-                elements.authAño.value = '';
-                elements.authSeccion.value = '';
-                elements.authColorAula.value = '';
+                if (elements.authPassword) elements.authPassword.value = '';
+                if (elements.authNombre) elements.authNombre.value = '';
+                if (elements.authAño) elements.authAño.value = '';
+                if (elements.authSeccion) elements.authSeccion.value = '';
+                if (elements.authColorAula) elements.authColorAula.value = '';
                 setError('');
                 setError('Registrado. Ahora inicia sesión.');
                 return;
@@ -148,6 +160,11 @@
     }
 
     function init() {
+        if (!elements.btnDocente || !elements.btnPadre || !elements.formAuth) {
+            console.error('[login] faltan elementos criticos en el DOM');
+            return;
+        }
+
         elements.btnDocente.addEventListener('click', () => {
             selectedRole = ROL_DOCENTE;
             setMode(false);
@@ -160,34 +177,34 @@
             showScreen('auth');
         });
 
-        elements.btnVolver.addEventListener('click', () => {
+        elements.btnVolver?.addEventListener('click', () => {
             clearError();
-            elements.authCode.value = '';
-            elements.authPassword.value = '';
-            elements.authNombre.value = '';
-            elements.authAño.value = '';
-            elements.authSeccion.value = '';
-            elements.authColorAula.value = '';
+            if (elements.authCode) elements.authCode.value = '';
+            if (elements.authPassword) elements.authPassword.value = '';
+            if (elements.authNombre) elements.authNombre.value = '';
+            if (elements.authAño) elements.authAño.value = '';
+            if (elements.authSeccion) elements.authSeccion.value = '';
+            if (elements.authColorAula) elements.authColorAula.value = '';
             showScreen('rol');
         });
 
-        elements.btnToggleMode.addEventListener('click', () => {
+        elements.btnToggleMode?.addEventListener('click', () => {
             clearError();
-            elements.authCode.value = '';
-            elements.authPassword.value = '';
-            elements.authNombre.value = '';
-            elements.authAño.value = '';
-            elements.authSeccion.value = '';
-            elements.authColorAula.value = '';
+            if (elements.authCode) elements.authCode.value = '';
+            if (elements.authPassword) elements.authPassword.value = '';
+            if (elements.authNombre) elements.authNombre.value = '';
+            if (elements.authAño) elements.authAño.value = '';
+            if (elements.authSeccion) elements.authSeccion.value = '';
+            if (elements.authColorAula) elements.authColorAula.value = '';
             setMode(!isRegisterMode);
         });
 
-        elements.btnLogin.addEventListener('click', (e) => {
+        elements.btnLogin?.addEventListener('click', (e) => {
             e.preventDefault();
             elements.formAuth.dispatchEvent(new Event('submit'));
         });
 
-        elements.btnRegister.addEventListener('click', (e) => {
+        elements.btnRegister?.addEventListener('click', (e) => {
             e.preventDefault();
             elements.formAuth.dispatchEvent(new Event('submit'));
         });
