@@ -336,7 +336,7 @@
 
     function init() {
         const token = localStorage.getItem('comucole_token');
-        const rol = localStorage.getItem('comucole_rol');
+        const rol = localStorage.getItem('comucole_role');
 
         console.log('[padre] init token=', !!token, 'rol=', rol);
 
