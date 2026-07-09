@@ -2,6 +2,7 @@ import json
 import logging
 import os
 import re
+import time
 
 from google import genai
 from google.genai import errors as genai_errors
@@ -51,8 +52,6 @@ TEXTO DEL DOCUMENTO:
 """
 
 
-
-
 def _limpiar_json_respuesta(texto: str) -> str:
     texto = texto.strip()
     if texto.startswith("```"):
@@ -84,6 +83,37 @@ def _obtener_modelo_disponible(cliente, modelo_preferido: str) -> str:
     return modelo_preferido
 
 
+def _intentar_generate_content(cliente, modelo: str, prompt: str, max_reintentos: int = 3) -> str:
+    espera_base = 2
+    ultimo_error = None
+
+    for intento in range(max_reintentos):
+        try:
+            respuesta = cliente.models.generate_content(
+                model=modelo,
+                contents=prompt,
+                config={"timeout": 120},
+            )
+            return respuesta.text
+        except genai_errors.ClientError as exc:
+            if exc.status_code == 404:
+                raise RuntimeError(f"Modelo no disponible: {modelo}") from exc
+            if exc.status_code in (429, 503):
+                espera = espera_base * (2 ** intento)
+                logger.warning("Error %s en Gemini. Reintento %s/%s en %ss", exc.status_code, intento + 1, max_reintentos, espera)
+                time.sleep(espera)
+                ultimo_error = exc
+                continue
+            raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
+        except Exception as exc:
+            raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
+
+    raise RuntimeError(
+        "El servicio de IA está con mucha demanda en este momento. "
+        "Por favor, esperá unos minutos y volvé a intentarlo."
+    ) from ultimo_error
+
+
 def procesar_documento_con_gemini(texto_crudo: str) -> dict:
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
@@ -98,21 +128,8 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
 
     prompt = PROMPT_BASE + texto_crudo
     logger.info("Texto crudo extraido del docx (primeros 500 caracteres): %s", texto_crudo[:500])
-    try:
-        respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
-        texto_respuesta = respuesta.text
-    except genai_errors.ClientError as exc:
-        if exc.status_code == 404:
-            modelo = _obtener_modelo_disponible(cliente, modelo_preferido)
-            logger.info("Reintentando con modelo alternativo tras 404: %s", modelo)
-            respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
-            texto_respuesta = respuesta.text
-        else:
-            logger.exception("Error en la API de Gemini")
-            raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
-    except Exception as exc:
-        logger.exception("Error inesperado al llamar a Gemini")
-        raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
+
+    texto_respuesta = _intentar_generate_content(cliente, modelo, prompt)
 
     logger.info("Respuesta cruda de Gemini (primeros 1000 caracteres): %s", texto_respuesta[:1000])
     try:
@@ -130,3 +147,4 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
         "semaforo": datos.get("semaforo", "amarillo"),
         "categoria": datos.get("categoria", "cognitivo"),
     }
+
