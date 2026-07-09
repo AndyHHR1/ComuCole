@@ -19,7 +19,7 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
  2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE". REGLAS:
     - Las preguntas de reflexión (ej: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?") NO son la tarea.
     - Frases como "Escucho sus respuestas", "retroalimento", "reforzamos ideas" NO son la tarea.
-    - ESTRUCTURA HABITUAL DEL CIERRE: primero van las preguntas de reflexión, luego viene una frase como "Escucho sus respuestas y retroalimento...", y DESPUÉS de esa frase aparece la tarea real.
+    - ESTRUCTURA HABITUAL DEL CIERRE: primero van las preguntas de reflexión, luego viene una frase como "Escucho sus respuestas y retroaliento...", y DESPUÉS de esa frase aparece la tarea real.
     - La tarea real suele empezar con frases como:
       * "Finalmente, entrego una hoja gráfica..."
       * "Como actividad final, ..."
@@ -29,6 +29,7 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
       * "Se entrega una ficha/hoja gráfica..."
     - Extrae SOLO la instrucción concreta para casa.
     - Si no encuentras ninguna actividad concreta para la casa, devuelve "".
+    - EJEMPLO: Si en el CIERRE ves "Escucho sus respuestas... Finalmente, entrego una hoja gráfica en la que observan diferentes imágenes...", la tarea es "Finalmente, entrego una hoja gráfica en la que observan diferentes imágenes y reconocen semejanzas y diferencias según las indicaciones propuestas."
 
 3. "materiales": Lista de útiles o recursos. Busca en secciones como "RECURSOS Y MATERIALES SUGERIDOS" o items como "Gorro mágico", "Imágenes", "Limpiatipo", "Semáforo", "Tarjetas", "Hoja gráfica", "Fichas", etc. Devuelve cada material como un item separado. Si no hay materiales, devuelve [].
 
@@ -140,11 +141,34 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
         logger.exception("Gemini devolvió un JSON inválido")
         raise RuntimeError("La IA devolvió un formato inválido. Intenta con otro documento.") from exc
 
+    tarea = datos.get("tarea", "")
+    if not tarea:
+        tarea = _extraer_tarea_por_regex(texto_crudo)
+        if tarea:
+            logger.info("Tarea extraída por regex: %s", tarea)
+
     return {
         "resumen_sesion": datos.get("resumen_sesion", ""),
-        "tarea": datos.get("tarea", ""),
+        "tarea": tarea,
         "materiales": datos.get("materiales", []),
         "semaforo": datos.get("semaforo", "amarillo"),
         "categoria": datos.get("categoria", "cognitivo"),
     }
+
+
+def _extraer_tarea_por_regex(texto_crudo: str) -> str:
+    patrones = [
+        r"Finalmente,\s*entrego\s+una\s+hoja\s+gr[aá]fica[^.]*\.",
+        r"Finalmente,\s*entrego\s+una\s+ficha[^.]*\.",
+        r"Como\s+actividad\s+final[^.]*\.",
+        r"Para\s+la\s+casa[^.]*\.",
+        r"Tarea[^:]*:\s*[^.]+(?:\.[^.]*)?",
+        r"Actividad\s+para\s+casa[^:]*:\s*[^.]+(?:\.[^.]*)?",
+        r"Se\s+entrega\s+una\s+ficha/hoja\s+gr[aá]fica[^.]*\.",
+    ]
+    for patron in patrones:
+        coincidencia = re.search(patron, texto_crudo, re.IGNORECASE)
+        if coincidencia:
+            return coincidencia.group(0).strip()
+    return ""
 
