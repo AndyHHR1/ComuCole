@@ -15,9 +15,17 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
 
 1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos) basado en el cuadro extenso de "Desarrollo de la Actividad".
 
-2. "tarea": La instrucción exacta para la casa. Está camuflada dentro del sub-apartado "- Cierre" ubicado al final del cuadro de desarrollo. Extrae SOLO la instrucción de la tarea.
+2. "tarea": La instrucción exacta para la casa. Busca en el sub-apartado "- Cierre" ubicado al final del cuadro de desarrollo. IMPORTANTE: En el cierre casi siempre aparecen primero preguntas de reflexión para los niños (ejemplo: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?"). Esas preguntas NO son la tarea. Después de esas preguntas, suele venir la consigna concreta para la casa, frecuentemente introducida con frases como:
+   - "Finalmente, entrego una hoja gráfica..."
+   - "Para la casa: ..."
+   - "Tarea: ..."
+   - "Actividad para casa: ..."
+   - "Realizar en casa: ..."
+   - "Como tarea, ..."
+   Extrae SOLO la instrucción/actividad concreta para la casa, NO las preguntas de reflexión.
+   Si no encuentras ninguna actividad para casa en el cierre, devuelve un string vacío "".
 
-3. "materiales": Lista de útiles o recursos si el docente los solicita explícitamente en el texto para algún día en particular. Si no hay materiales, devuelve una lista vacía [].
+3. "materiales": Lista de útiles o recursos si el docente los solicita explícitamente en el texto para algún día en particular. Busca palabras como "materiales", "útiles", "necesitan", "llevar", "recursos". Si no hay materiales, devuelve una lista vacía [].
 
 4. "semaforo": Clasificación del tiempo de entrega en UNO de estos 3 strings exactos:
    - "rojo" -> Es para ya / mucha carga
@@ -31,7 +39,7 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
 
 REGLAS ESTRICTAS:
 - Devuelve SOLO el JSON. No expliques tu razonamiento.
-- No inventes información. Si un campo no está presente, usa valores por defecto (lista vacía para materiales).
+- No inventes información. Si un campo no está presente, usa valores por defecto (lista vacía para materiales, string vacío para tarea).
 - El JSON debe ser parseable directamente con json.loads().
 - Usa exactamente las claves: resumen_sesion, tarea, materiales, semaforo, categoria.
 
