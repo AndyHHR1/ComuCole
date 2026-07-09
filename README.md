@@ -69,9 +69,10 @@ Accede a:
    - Health check: `/health`
    - Puerto: 8000
 
-5. En la sección **Environment Variables** del servicio, agrega:
-   - `GOOGLE_API_KEY`: tu API key de Google AI Studio
-   - Marca como **Private**
+ 5. En la sección **Environment Variables** del servicio, agrega:
+    - `GOOGLE_API_KEY`: tu API key de Google AI Studio
+    - Marca como **Private**
+    - `GEMINI_MODEL`: opcional. Default: `gemini-1.0-pro`. Si tu API key soporta `gemini-1.5-flash`, podés cambiarlo.
 
 6. Haz clic en **Create Web Service**.
 
@@ -83,8 +84,9 @@ Accede a:
    - **Environment**: `Docker`
    - **Dockerfile Path**: `./Dockerfile`
    - **Health Check Path**: `/health`
-4. Variables de entorno:
-   - `GOOGLE_API_KEY` (privada)
+ 4. Variables de entorno:
+    - `GOOGLE_API_KEY` (privada)
+    - `GEMINI_MODEL` (opcional). Default: `gemini-1.0-pro`
 
 ### Comandos Útiles
 
@@ -93,7 +95,7 @@ Accede a:
 docker build -t comucole .
 
 # Ejecutar contenedor localmente
-docker run -p 8000:8000 -e GOOGLE_API_KEY=tu_key comucole
+docker run -p 8000:8000 -e GOOGLE_API_KEY=tu_key -e GEMINI_MODEL=gemini-1.0-pro comucole
 ```
 
 ## Endpoints Principales
@@ -111,6 +113,7 @@ docker run -p 8000:8000 -e GOOGLE_API_KEY=tu_key comucole
 | Variable | Descripción | Requerida |
 |----------|-------------|-----------|
 | `GOOGLE_API_KEY` | API Key de Google AI Studio (Gemini) | Sí |
+| `GEMINI_MODEL` | Modelo de Gemini a usar. Default: `gemini-1.0-pro` | No |
 | `PYTHONUNBUFFERED` | Salida de logs sin buffer en Docker | No |
 
 ## Notas

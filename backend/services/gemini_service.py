@@ -52,15 +52,16 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
     if not api_key:
         raise RuntimeError("GOOGLE_API_KEY no está definida en las variables de entorno.")
 
+    modelo = os.getenv("GEMINI_MODEL", "gemini-1.0-pro")
     cliente = genai.Client(api_key=api_key)
 
     prompt = PROMPT_BASE + texto_crudo
     try:
-        respuesta = cliente.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
         texto_respuesta = respuesta.text
     except genai_errors.ClientError as exc:
         logger.exception("Error en la API de Gemini")
-        raise RuntimeError(f"Error en la API de Gemini: {exc.message}") from exc
+        raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
     except Exception as exc:
         logger.exception("Error inesperado al llamar a Gemini")
         raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc

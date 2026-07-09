@@ -5,10 +5,12 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    branch: main
+    branch: develop
     healthCheckPath: /health
     envVars:
       - key: GOOGLE_API_KEY
         sync: false
+      - key: GEMINI_MODEL
+        value: "gemini-1.0-pro"
       - key: PYTHONUNBUFFERED
         value: "1"
