@@ -102,6 +102,7 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
         logger.info("Usando modelo alternativo de Gemini: %s", modelo)
 
     prompt = PROMPT_BASE + texto_crudo
+    logger.info("Texto crudo extraido del docx (primeros 500 caracteres): %s", texto_crudo[:500])
     try:
         respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
         texto_respuesta = respuesta.text
@@ -118,9 +119,11 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
         logger.exception("Error inesperado al llamar a Gemini")
         raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
 
+    logger.info("Respuesta cruda de Gemini (primeros 1000 caracteres): %s", texto_respuesta[:1000])
     try:
         json_limpio = _limpiar_json_respuesta(texto_respuesta)
         datos = json.loads(json_limpio)
+        logger.info("JSON parseado por Gemini: %s", datos)
     except json.JSONDecodeError as exc:
         logger.exception("Gemini devolvió un JSON inválido")
         raise RuntimeError("La IA devolvió un formato inválido. Intenta con otro documento.") from exc
