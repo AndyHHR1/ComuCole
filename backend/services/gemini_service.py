@@ -13,19 +13,24 @@ A continuación recibirás el texto crudo extraído de un documento .docx de pla
 
 Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON válido (sin markdown, sin ```json, sin texto adicional):
 
-1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos) basado en el cuadro extenso de "Desarrollo de la Actividad".
+1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos) basado en el cuadro extenso de "Desarrollo de la Actividad". Resume lo que los niños hicieron en la sesión, qué aprendieron y cómo trabajaron.
 
-2. "tarea": La instrucción exacta para la casa. Busca en el sub-apartado "- Cierre" ubicado al final del cuadro de desarrollo. IMPORTANTE: En el cierre casi siempre aparecen primero preguntas de reflexión para los niños (ejemplo: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?"). Esas preguntas NO son la tarea. Después de esas preguntas, suele venir la consigna concreta para la casa, frecuentemente introducida con frases como:
-   - "Finalmente, entrego una hoja gráfica..."
-   - "Para la casa: ..."
-   - "Tarea: ..."
-   - "Actividad para casa: ..."
-   - "Realizar en casa: ..."
-   - "Como tarea, ..."
-   Extrae SOLO la instrucción/actividad concreta para la casa, NO las preguntas de reflexión.
-   Si no encuentras ninguna actividad para casa en el cierre, devuelve un string vacío "".
+2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE" ubicado al final del documento. REGLAS DE ORO PARA EXTRAER LA TAREA:
+   - En el CIERRE casi siempre aparecen PRIMERO las preguntas de reflexión oral para los niños (ejemplo: "¿Qué aprendimos hoy?", "¿Cómo descubrimos las semejanzas?", etc.). Esas preguntas NO son la tarea.
+   - Después de las preguntas de reflexión, el docente suele escribir frases como "Escucho sus respuestas y retroalimento..." o "Reforzamos las ideas principales...". Tampoco son la tarea.
+   - La tarea real suele venir DESPUÉS de eso, frecuentemente introducida con frases como:
+     * "Finalmente, entrego una hoja gráfica..."
+     * "Como actividad final, ..."
+     * "Para la casa: ..."
+     * "Tarea: ..."
+     * "Actividad para casa: ..."
+     * "Realizar en casa: ..."
+     * "Como tarea, ..."
+     * "Se entrega una ficha/hoja gráfica..."
+   - Extrae SOLO la instrucción/actividad concreta para la casa, NO las preguntas de reflexión.
+   - Si no encuentras ninguna actividad concreta para la casa, devuelve un string vacío "".
 
-3. "materiales": Lista de útiles o recursos si el docente los solicita explícitamente en el texto para algún día en particular. Busca palabras como "materiales", "útiles", "necesitan", "llevar", "recursos". Si no hay materiales, devuelve una lista vacía [].
+3. "materiales": Lista de útiles o recursos si el docente los solicita explícitamente en el texto. Busca en secciones como "RECURSOS Y MATERIALES SUGERIDOS" o frases como "materiales", "útiles", "necesitan", "llevar", "recursos", "hoja gráfica", "ficha", "tarjetas", "imágenes". Si no hay materiales, devuelve una lista vacía [].
 
 4. "semaforo": Clasificación del tiempo de entrega en UNO de estos 3 strings exactos:
    - "rojo" -> Es para ya / mucha carga
@@ -33,8 +38,8 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
    - "verde" -> Vas bien de tiempo / plazo amplio
 
 5. "categoria": Clasificación del tipo de trabajo en UNO de estos 3 strings exactos:
-   - "cognitivo" -> Estudio, lectura, matemática
-   - "manual" -> Maquetas, arte, materiales
+   - "cognitivo" -> Estudio, lectura, matemática, reconocer semejanzas y diferencias,observar imágenes
+   - "manual" -> Maquetas, arte, materiales, recortar, pegar, armar
    - "psicomotriz" -> Educación física o actividades motrices
 
 REGLAS ESTRICTAS:
@@ -45,6 +50,7 @@ REGLAS ESTRICTAS:
 
 TEXTO DEL DOCUMENTO:
 """
+
 
 
 def _limpiar_json_respuesta(texto: str) -> str:
