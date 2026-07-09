@@ -16,18 +16,19 @@ Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON
 
 1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos). Busca una sección llamada "DESARROLLO DE LA ACTIVIDAD" o "DESARROLLO DE LAS ACTIVIDADES DE APRENDIZAJE". Dentro de esa sección, hay subapartados como "INICIO", "DESARROLLO" y "CIERRE". Resume qué hicieron los niños en la sesión, qué aprendieron y cómo trabajaron. NO digas que no hay información si ves esos subapartados.
 
-2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE". REGLAS:
-   - Las preguntas de reflexión (ej: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?") NO son la tarea.
-   - Frases como "Escucho sus respuestas", "retroalimento", "reforzamos ideas" NO son la tarea.
-   - La tarea real suele venir DESPUÉS de eso, frecuentemente con frases como:
-     * "Finalmente, entrego una hoja gráfica..."
-     * "Como actividad final, ..."
-     * "Para la casa: ..."
-     * "Tarea: ..."
-     * "Actividad para casa: ..."
-     * "Se entrega una ficha/hoja gráfica..."
-   - Extrae SOLO la instrucción concreta para casa.
-   - Si no encuentras ninguna actividad concreta para la casa, devuelve "".
+ 2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE". REGLAS:
+    - Las preguntas de reflexión (ej: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?") NO son la tarea.
+    - Frases como "Escucho sus respuestas", "retroalimento", "reforzamos ideas" NO son la tarea.
+    - ESTRUCTURA HABITUAL DEL CIERRE: primero van las preguntas de reflexión, luego viene una frase como "Escucho sus respuestas y retroalimento...", y DESPUÉS de esa frase aparece la tarea real.
+    - La tarea real suele empezar con frases como:
+      * "Finalmente, entrego una hoja gráfica..."
+      * "Como actividad final, ..."
+      * "Para la casa: ..."
+      * "Tarea: ..."
+      * "Actividad para casa: ..."
+      * "Se entrega una ficha/hoja gráfica..."
+    - Extrae SOLO la instrucción concreta para casa.
+    - Si no encuentras ninguna actividad concreta para la casa, devuelve "".
 
 3. "materiales": Lista de útiles o recursos. Busca en secciones como "RECURSOS Y MATERIALES SUGERIDOS" o items como "Gorro mágico", "Imágenes", "Limpiatipo", "Semáforo", "Tarjetas", "Hoja gráfica", "Fichas", etc. Devuelve cada material como un item separado. Si no hay materiales, devuelve [].
 
