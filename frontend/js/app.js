@@ -225,6 +225,14 @@
         });
 
         elements.btnNuevaPublicacion.addEventListener('click', nuevaPublicacion);
+
+        const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+        if (btnCerrarSesion) {
+            btnCerrarSesion.addEventListener('click', () => {
+                localStorage.removeItem('comucole_rol');
+                window.location.href = '/login.html';
+            });
+        }
     }
 
     function init() {

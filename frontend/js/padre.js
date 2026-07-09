@@ -293,6 +293,14 @@
         elements.btnRevisada.addEventListener('click', marcarRevisada);
         elements.btnCumplida.addEventListener('click', marcarCumplida);
 
+        const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
+        if (btnCerrarSesion) {
+            btnCerrarSesion.addEventListener('click', () => {
+                localStorage.removeItem('comucole_rol');
+                window.location.href = '/login.html';
+            });
+        }
+
         setTimeout(() => {
             cargarDatosDeDemo();
         }, 600);

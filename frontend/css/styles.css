@@ -362,24 +362,32 @@ body {
     font-size: 0.85rem;
 }
 
+.btn-logout {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #dc2626;
+    background: #ffffff;
+    border: 1px solid #fecaca;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-logout:hover {
+    background: #fef2f2;
+    border-color: #fca5a5;
+}
+
 @media (max-width: 480px) {
-    .container {
-        padding: 1rem;
+    .header {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
     }
 
-    .card {
-        padding: 1.5rem;
-    }
-
-    .header h1 {
-        font-size: 1.5rem;
-    }
-
-    .form-actions {
-        flex-direction: column;
-    }
-
-    .btn {
-        width: 100%;
+    .btn-logout {
+        padding: 0.4rem 0.625rem;
+        font-size: 0.8rem;
     }
 }
