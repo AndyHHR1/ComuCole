@@ -11,42 +11,47 @@ logger = logging.getLogger(__name__)
 PROMPT_BASE = """Eres un asistente especializado en análisis de documentos escolares para la plataforma ComuCole.
 A continuación recibirás el texto crudo extraído de un documento .docx de planificación docente.
 
-Tu tarea es extraer ESTRICTAMENTE los siguientes bloques y devolver SOLO un JSON válido (sin markdown, sin ```json, sin texto adicional):
+IMPORTANTE: Este documento tiene una estructura fija. Debes buscar y procesar estas secciones en este orden:
 
-1. "resumen_sesion": Un resumen amigable y ejecutivo (máximo 2 párrafos) basado en el cuadro extenso de "Desarrollo de la Actividad". Resume lo que los niños hicieron en la sesión, qué aprendieron y cómo trabajaron.
+A. "RESUMEN DE LA SESIÓN": Busca una sección llamada "DESARROLLO DE LA ACTIVIDAD". Dentro de esa sección, extrae TODO el contenido que describe lo que los niños hicieron, incluyendo:
+   - INICIO: qué hizo el docente, qué preguntas formuló, qué materiales presentó
+   - DESARROLLO: qué actividades realizaron los niños, cómo trabajaron, qué aprendieron
+   - CIERRE: la reflexión final y la actividad/tarea para casa
+   Escribe un resumen amigable y ejecutivo de máximo 2 párrafos que cuente qué hicieron los niños en la sesión.
 
-2. "tarea": La instrucción exacta para la casa. Busca en el apartado "CIERRE" ubicado al final del documento. REGLAS DE ORO PARA EXTRAER LA TAREA:
-   - En el CIERRE casi siempre aparecen PRIMERO las preguntas de reflexión oral para los niños (ejemplo: "¿Qué aprendimos hoy?", "¿Cómo descubrimos las semejanzas?", etc.). Esas preguntas NO son la tarea.
-   - Después de las preguntas de reflexión, el docente suele escribir frases como "Escucho sus respuestas y retroalimento..." o "Reforzamos las ideas principales...". Tampoco son la tarea.
-   - La tarea real suele venir DESPUÉS de eso, frecuentemente introducida con frases como:
+B. "TAREA": Busca en el apartado "CIERRE" la actividad concreta para la casa. REGLAS:
+   - Las preguntas de reflexión (ej: "¿Qué aprendimos hoy?", "¿Cómo descubrimos...?") NO son la tarea.
+   - Frases como "Escucho sus respuestas", "retroalimento", "reforzamos ideas" NO son la tarea.
+   - La tarea real suele venir DESPUÉS de eso, frecuentemente con frases como:
      * "Finalmente, entrego una hoja gráfica..."
      * "Como actividad final, ..."
      * "Para la casa: ..."
      * "Tarea: ..."
      * "Actividad para casa: ..."
-     * "Realizar en casa: ..."
-     * "Como tarea, ..."
      * "Se entrega una ficha/hoja gráfica..."
-   - Extrae SOLO la instrucción/actividad concreta para la casa, NO las preguntas de reflexión.
-   - Si no encuentras ninguna actividad concreta para la casa, devuelve un string vacío "".
+   - Extrae SOLO la instrucción concreta para casa.
+   - Si no hay tarea, devuelve "".
 
-3. "materiales": Lista de útiles o recursos si el docente los solicita explícitamente en el texto. Busca en secciones como "RECURSOS Y MATERIALES SUGERIDOS" o frases como "materiales", "útiles", "necesitan", "llevar", "recursos", "hoja gráfica", "ficha", "tarjetas", "imágenes". Si no hay materiales, devuelve una lista vacía [].
+C. "MATERIALES": Busca en "RECURSOS Y MATERIALES SUGERIDOS" o en el texto items como:
+   "Gorro mágico", "Imágenes", "Limpiatipo", "Semáforo", "Tarjetas", "Hoja gráfica", "Fichas", etc.
+   Devuelve una lista con cada material encontrado. Si no hay, devuelve [].
 
-4. "semaforo": Clasificación del tiempo de entrega en UNO de estos 3 strings exactos:
+D. "SEMAFORO": Clasifica el tiempo de entrega:
    - "rojo" -> Es para ya / mucha carga
    - "amarillo" -> Tienes tiempo / plazo moderado
    - "verde" -> Vas bien de tiempo / plazo amplio
 
-5. "categoria": Clasificación del tipo de trabajo en UNO de estos 3 strings exactos:
-   - "cognitivo" -> Estudio, lectura, matemática, reconocer semejanzas y diferencias,observar imágenes
+E. "CATEGORIA": Clasifica el tipo de trabajo:
+   - "cognitivo" -> Estudio, lectura, matemática, reconocer semejanzas y diferencias, observar imágenes
    - "manual" -> Maquetas, arte, materiales, recortar, pegar, armar
    - "psicomotriz" -> Educación física o actividades motrices
 
 REGLAS ESTRICTAS:
 - Devuelve SOLO el JSON. No expliques tu razonamiento.
-- No inventes información. Si un campo no está presente, usa valores por defecto (lista vacía para materiales, string vacío para tarea).
+- No inventes información.
+- Si no encuentras un campo, usa valores por defecto: tarea = "", materiales = [], semaforo = "amarillo", categoria = "cognitivo".
 - El JSON debe ser parseable directamente con json.loads().
-- Usa exactamente las claves: resumen_sesion, tarea, materiales, semaforo, categoria.
+- Usa exactamente estas claves: resumen_sesion, tarea, materiales, semaforo, categoria.
 
 TEXTO DEL DOCUMENTO:
 """
