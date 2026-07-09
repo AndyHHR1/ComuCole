@@ -170,7 +170,7 @@
             showScreen('exito');
         } catch (error) {
             console.error('Error publicando:', error);
-            alert('Error al publicar. Por favor intenta nuevamente.');
+            alert(error.message || 'Error al publicar. Por favor intenta nuevamente.');
         } finally {
             elements.btnPublicar.disabled = false;
             btnText.classList.remove('hidden');
@@ -200,9 +200,21 @@
             body: JSON.stringify(body),
         });
 
+        const rawText = await response.text();
+        let errorDetail = `Error ${response.status}: ${response.statusText}`;
+        try {
+            const errorData = JSON.parse(rawText);
+            if (errorData.detail) {
+                errorDetail = errorData.detail;
+            }
+        } catch {
+            if (rawText.trim()) {
+                errorDetail = rawText.trim();
+            }
+        }
+
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+            throw new Error(errorDetail);
         }
     }
 

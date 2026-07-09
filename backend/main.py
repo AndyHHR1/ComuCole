@@ -267,23 +267,37 @@ async def create_task(
     color_aula = data.get("color_aula")
     file_url = data.get("file_url")
 
+    logger.info(f"[tasks] intento crear tarea teacher={current_user.code} año={año} seccion={seccion} color_aula={color_aula}")
+
     if not title:
         raise HTTPException(status_code=400, detail="El título es requerido")
 
-    task = Task(
-        title=title,
-        description=description,
-        teacher_id=current_user.id,
-        año=int(año) if año else None,
-        seccion=seccion,
-        color_aula=color_aula,
-        file_url=file_url,
-        status="pending",
-        points=0,
-    )
-    db.add(task)
-    db.commit()
-    db.refresh(task)
+    if not año or not seccion or not color_aula:
+        raise HTTPException(status_code=400, detail="Selecciona el año, la sección y el color del aula para publicar la tarea")
+
+    try:
+        año_int = int(año)
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=400, detail="El año debe ser un número válido")
+
+    try:
+        task = Task(
+            title=title,
+            description=description,
+            teacher_id=current_user.id,
+            año=año_int,
+            seccion=seccion,
+            color_aula=color_aula,
+            file_url=file_url,
+            status="pending",
+            points=0,
+        )
+        db.add(task)
+        db.commit()
+        db.refresh(task)
+    except Exception as exc:
+        logger.exception("[tasks] error creando tarea")
+        raise HTTPException(status_code=500, detail="Error al guardar la tarea") from exc
 
     return {
         "ok": True,
