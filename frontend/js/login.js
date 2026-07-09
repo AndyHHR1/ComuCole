@@ -16,6 +16,7 @@
         btnVolver: document.getElementById('btn-volver'),
         btnLogin: document.getElementById('btn-login'),
         btnRegister: document.getElementById('btn-register'),
+        btnToggleMode: document.getElementById('btn-toggle-mode'),
         formAuth: document.getElementById('form-auth'),
         authHint: document.getElementById('auth-hint'),
         authCode: document.getElementById('auth-code'),
@@ -46,6 +47,7 @@
         elements.btnRegister.classList.toggle('hidden', !register);
         elements.groupNombre.classList.toggle('hidden', !register);
         elements.authHint.textContent = register ? 'Completa tus datos para registrarte' : 'Inicia sesión con tu código';
+        elements.btnToggleMode.textContent = register ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
     }
 
     function redirect(role) {
@@ -133,6 +135,14 @@
             elements.authPassword.value = '';
             elements.authNombre.value = '';
             showScreen('rol');
+        });
+
+        elements.btnToggleMode.addEventListener('click', () => {
+            clearError();
+            elements.authCode.value = '';
+            elements.authPassword.value = '';
+            elements.authNombre.value = '';
+            setMode(!isRegisterMode);
         });
 
         elements.btnLogin.addEventListener('click', (e) => {

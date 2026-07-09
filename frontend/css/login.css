@@ -141,3 +141,20 @@
         gap: 1rem;
     }
 }
+
+.btn-toggle-mode {
+    display: block;
+    margin: 1rem auto 0;
+    padding: 0;
+    background: none;
+    border: none;
+    color: #2563eb;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+.btn-toggle-mode:hover {
+    color: #1d4ed8;
+}
