@@ -1,9 +1,12 @@
 import json
+import logging
 import os
 import re
 
 from google import genai
+from google.genai import errors as genai_errors
 
+logger = logging.getLogger(__name__)
 
 PROMPT_BASE = """Eres un asistente especializado en análisis de documentos escolares para la plataforma ComuCole.
 A continuación recibirás el texto crudo extraído de un documento .docx de planificación docente.
@@ -52,11 +55,22 @@ def procesar_documento_con_gemini(texto_crudo: str) -> dict:
     cliente = genai.Client(api_key=api_key)
 
     prompt = PROMPT_BASE + texto_crudo
-    respuesta = cliente.models.generate_content(model="gemini-1.5-flash", contents=prompt)
-    texto_respuesta = respuesta.text
+    try:
+        respuesta = cliente.models.generate_content(model="gemini-1.5-flash", contents=prompt)
+        texto_respuesta = respuesta.text
+    except genai_errors.ClientError as exc:
+        logger.exception("Error en la API de Gemini")
+        raise RuntimeError(f"Error en la API de Gemini: {exc.message}") from exc
+    except Exception as exc:
+        logger.exception("Error inesperado al llamar a Gemini")
+        raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
 
-    json_limpio = _limpiar_json_respuesta(texto_respuesta)
-    datos = json.loads(json_limpio)
+    try:
+        json_limpio = _limpiar_json_respuesta(texto_respuesta)
+        datos = json.loads(json_limpio)
+    except json.JSONDecodeError as exc:
+        logger.exception("Gemini devolvió un JSON inválido")
+        raise RuntimeError("La IA devolvió un formato inválido. Intenta con otro documento.") from exc
 
     return {
         "resumen_sesion": datos.get("resumen_sesion", ""),

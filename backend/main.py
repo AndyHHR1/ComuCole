@@ -1,3 +1,4 @@
+import logging
 import os
 from collections import defaultdict
 from pathlib import Path
@@ -9,6 +10,8 @@ from fastapi.staticfiles import StaticFiles
 from backend.models.schemas import ComuColeResponse
 from backend.services.docx_processor import extraer_texto_docx
 from backend.services.gemini_service import procesar_documento_con_gemini
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title="ComuCole API",
@@ -41,6 +44,12 @@ async def procesar_docx(archivo: UploadFile = File(...)):
 
         resultado = procesar_documento_con_gemini(texto_crudo)
         return JSONResponse(content=resultado)
+    except RuntimeError as exc:
+        logger.exception("Error procesando documento con Gemini")
+        raise HTTPException(status_code=500, detail=str(exc)) from exc
+    except Exception as exc:
+        logger.exception("Error inesperado procesando documento")
+        raise HTTPException(status_code=500, detail=f"Error inesperado: {exc}") from exc
     finally:
         if tmp_path.exists():
             tmp_path.unlink()
