@@ -297,7 +297,7 @@
         if (btnCerrarSesion) {
             btnCerrarSesion.addEventListener('click', () => {
                 localStorage.removeItem('comucole_rol');
-                window.location.href = '/login.html';
+                window.location.href = '/';
             });
         }
 

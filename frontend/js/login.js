@@ -20,7 +20,7 @@
     function redirigir(rol) {
         setRol(rol);
         if (rol === ROL_DOCENTE) {
-            window.location.href = '/index.html';
+            window.location.href = '/docente.html';
         } else if (rol === ROL_PADRE) {
             window.location.href = '/padre.html';
         }
@@ -29,7 +29,7 @@
     function init() {
         const rol = getRol();
         if (rol === ROL_DOCENTE) {
-            window.location.href = '/index.html';
+            window.location.href = '/docente.html';
             return;
         }
         if (rol === ROL_PADRE) {

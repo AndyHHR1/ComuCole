@@ -9,9 +9,12 @@ ComuCole/
 ├── backend/                 # API FastAPI
 │   ├── main.py              # App principal + endpoints
 │   ├── models/              # Esquemas Pydantic
-│   └── services/            # Lógica de negocio (docx, gemini)
+│   ├── services/            # Lógica de negocio (docx, gemini)
+│   ├── config.py            # Configuración centralizada
+│   └── prompts/             # Prompts externos para IA
 ├── frontend/                # Cliente web responsivo
-│   ├── index.html           # Panel del docente
+│   ├── index.html           # Login principal (selección de rol)
+│   ├── docente.html         # Panel del docente
 │   ├── padre.html           # Panel del padre
 │   ├── css/
 │   └── js/
@@ -52,7 +55,8 @@ uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
 Accede a:
-- **Panel Docente**: `http://localhost:8000/` (arrastra el .docx)
+- **Login**: `http://localhost:8000/` (selección de rol)
+- **Panel Docente**: `http://localhost:8000/docente.html`
 - **Panel Padre**: `http://localhost:8000/padre.html`
 - **API Docs**: `http://localhost:8000/docs`
 
