@@ -39,6 +39,17 @@ def startup():
     logger.info(f"[startup] DATABASE_URL={db_url}")
     Base.metadata.create_all(bind=engine, checkfirst=True)
 
+    try:
+        with engine.begin() as conn:
+            conn.exec_driver_sql('ALTER TABLE users ADD COLUMN IF NOT EXISTS "año" INTEGER')
+            conn.exec_driver_sql('ALTER TABLE users ADD COLUMN IF NOT EXISTS seccion VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE users ADD COLUMN IF NOT EXISTS color_aula VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS "año" INTEGER')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS seccion VARCHAR')
+            conn.exec_driver_sql('ALTER TABLE tasks ADD COLUMN IF NOT EXISTS color_aula VARCHAR')
+    except Exception:
+        logger.exception("[startup] migracion de columnas año/seccion/color_aula fallo")
+
 
 @app.get("/me")
 async def get_me(current_user: User = Depends(get_current_user)) -> dict:
