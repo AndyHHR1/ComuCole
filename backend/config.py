@@ -1,8 +1,8 @@
 from pathlib import Path
 
 # Rutas
-BASE_DIR = Path(__file__).resolve().parent.parent
-FRONTEND_DIR = BASE_DIR / "frontend"
+BASE_DIR = Path(__file__).resolve().parent
+FRONTEND_DIR = BASE_DIR.parent / "frontend"
 PROMPTS_DIR = BASE_DIR / "prompts"
 
 # Archivos
