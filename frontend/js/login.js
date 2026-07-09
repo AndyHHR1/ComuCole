@@ -100,6 +100,7 @@
         const body = {
             code,
             password,
+            role: selectedRole,
         };
 
         if (isRegisterMode) {
@@ -108,7 +109,6 @@
                 return;
             }
             body.full_name = nombre;
-            body.role = selectedRole;
 
             if (selectedRole === ROL_PADRE) {
                 body.año = año;
