@@ -263,16 +263,24 @@
     }
 
     function init() {
-        const token = localStorage.getItem('comucole_token');
-        const rol = localStorage.getItem('comucole_rol');
+        try {
+            const token = localStorage.getItem('comucole_token');
+            const rol = localStorage.getItem('comucole_rol');
 
-        if (!token || rol !== 'teacher') {
+            console.log('[docente] init token=', !!token, 'rol=', rol);
+
+            if (!token || rol !== 'teacher') {
+                console.warn('[docente] redirigiendo a login porque falta token o rol incorrecto');
+                window.location.href = '/';
+                return;
+            }
+
+            initEventListeners();
+            showScreen('carga');
+        } catch (error) {
+            console.error('[docente] error en init', error);
             window.location.href = '/';
-            return;
         }
-
-        initEventListeners();
-        showScreen('carga');
     }
 
     if (document.readyState === 'loading') {

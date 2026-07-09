@@ -338,6 +338,8 @@
         const token = localStorage.getItem('comucole_token');
         const rol = localStorage.getItem('comucole_rol');
 
+        console.log('[padre] init token=', !!token, 'rol=', rol);
+
         if (!token || rol !== 'parent') {
             setTimeout(() => {
                 window.location.href = '/';
