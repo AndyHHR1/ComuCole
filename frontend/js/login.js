@@ -97,6 +97,10 @@
             }
 
             if (!isRegisterMode && data.access_token) {
+                if (data.role !== selectedRole) {
+                    setError(`Esta cuenta está registrada como ${data.role === 'teacher' ? 'docente' : 'padre'}. Usa el perfil correcto.`);
+                    return;
+                }
                 localStorage.setItem('comucole_token', data.access_token);
                 localStorage.setItem('comucole_role', data.role);
                 localStorage.setItem('comucole_full_name', data.full_name || '');

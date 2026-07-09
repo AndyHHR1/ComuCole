@@ -336,7 +336,9 @@
 
     function init() {
         const token = localStorage.getItem('comucole_token');
-        if (!token) {
+        const rol = localStorage.getItem('comucole_rol');
+
+        if (!token || rol !== 'parent') {
             setTimeout(() => {
                 window.location.href = '/';
             }, 1000);

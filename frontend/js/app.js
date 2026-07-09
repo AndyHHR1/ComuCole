@@ -263,6 +263,14 @@
     }
 
     function init() {
+        const token = localStorage.getItem('comucole_token');
+        const rol = localStorage.getItem('comucole_rol');
+
+        if (!token || rol !== 'teacher') {
+            window.location.href = '/';
+            return;
+        }
+
         initEventListeners();
         showScreen('carga');
     }
