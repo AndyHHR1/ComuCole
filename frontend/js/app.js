@@ -188,7 +188,6 @@
             año: datos.año,
             seccion: datos.seccion,
             color_aula: datos.color_aula,
-            file_url: '',
         };
 
         const response = await fetch(`${API_BASE_URL}/tasks`, {

@@ -265,7 +265,6 @@ async def create_task(
     año = data.get("año")
     seccion = data.get("seccion")
     color_aula = data.get("color_aula")
-    file_url = data.get("file_url")
 
     logger.info(f"[tasks] intento crear tarea teacher={current_user.code} año={año} seccion={seccion} color_aula={color_aula}")
 
@@ -288,7 +287,6 @@ async def create_task(
             año=año_int,
             seccion=seccion,
             color_aula=color_aula,
-            file_url=file_url,
             status="pending",
             points=0,
         )
