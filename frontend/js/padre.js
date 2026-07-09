@@ -334,18 +334,40 @@
         }
     }
 
-    function init() {
+    async function validarAcceso() {
         const token = localStorage.getItem('comucole_token');
-        const rol = localStorage.getItem('comucole_role');
-
-        console.log('[padre] init token=', !!token, 'rol=', rol);
-
-        if (!token || rol !== 'parent') {
-            setTimeout(() => {
-                window.location.href = '/';
-            }, 1000);
-            return;
+        if (!token) {
+            window.location.href = '/';
+            return false;
         }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/me`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
+
+            if (!response.ok) {
+                window.location.href = '/';
+                return false;
+            }
+
+            const data = await response.json();
+            if (data.role !== 'parent') {
+                window.location.href = '/';
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('[padre] error validando acceso', error);
+            window.location.href = '/';
+            return false;
+        }
+    }
+
+    async function init() {
+        const ok = await validarAcceso();
+        if (!ok) return;
 
         showScreen('carga');
 

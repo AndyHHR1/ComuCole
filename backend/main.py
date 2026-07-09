@@ -40,6 +40,24 @@ def startup():
     Base.metadata.create_all(bind=engine, checkfirst=True)
 
 
+@app.get("/me")
+async def get_me(current_user: User = Depends(get_current_user)) -> dict:
+    return {
+        "code": current_user.code,
+        "role": current_user.role.value,
+        "full_name": current_user.full_name,
+    }
+
+
+@app.get("/me")
+async def get_me(current_user: User = Depends(get_current_user)) -> dict:
+    return {
+        "code": current_user.code,
+        "role": current_user.role.value,
+        "full_name": current_user.full_name,
+    }
+
+
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}

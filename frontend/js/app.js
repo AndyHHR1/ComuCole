@@ -262,25 +262,43 @@
         }
     }
 
-    function init() {
+    async function validarAcceso() {
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            window.location.href = '/';
+            return false;
+        }
+
         try {
-            const token = localStorage.getItem('comucole_token');
-            const rol = localStorage.getItem('comucole_role');
+            const response = await fetch(`${API_BASE_URL}/me`, {
+                headers: { 'Authorization': `Bearer ${token}` },
+            });
 
-            console.log('[docente] init token=', !!token, 'rol=', rol);
-
-            if (!token || rol !== 'teacher') {
-                console.warn('[docente] redirigiendo a login porque falta token o rol incorrecto');
+            if (!response.ok) {
                 window.location.href = '/';
-                return;
+                return false;
             }
 
-            initEventListeners();
-            showScreen('carga');
+            const data = await response.json();
+            if (data.role !== 'teacher') {
+                window.location.href = '/';
+                return false;
+            }
+
+            return true;
         } catch (error) {
-            console.error('[docente] error en init', error);
+            console.error('[docente] error validando acceso', error);
             window.location.href = '/';
+            return false;
         }
+    }
+
+    async function init() {
+        const ok = await validarAcceso();
+        if (!ok) return;
+
+        initEventListeners();
+        showScreen('carga');
     }
 
     if (document.readyState === 'loading') {

@@ -72,7 +72,6 @@
         const body = {
             code,
             password,
-            role: selectedRole,
         };
 
         if (isRegisterMode) {
@@ -81,6 +80,7 @@
                 return;
             }
             body.full_name = nombre;
+            body.role = selectedRole;
         }
 
         try {
@@ -97,15 +97,10 @@
             }
 
             if (!isRegisterMode && data.access_token) {
-                if (data.role !== selectedRole) {
-                    setError(`Esta cuenta está registrada como ${data.role === 'teacher' ? 'docente' : 'padre'}. Usa el perfil correcto.`);
-                    return;
-                }
                 localStorage.setItem('comucole_token', data.access_token);
                 localStorage.setItem('comucole_role', data.role);
                 localStorage.setItem('comucole_full_name', data.full_name || '');
                 localStorage.setItem('comucole_code', code);
-                console.log('[login] guardado rol=', data.role, 'code=', code);
                 redirect(data.role);
                 return;
             } else if (isRegisterMode) {
@@ -123,19 +118,6 @@
             setError('Error de conexión');
         }
     }
-
-    async function handleSubmit(e) {
-        e.preventDefault();
-        clearError();
-
-        const code = elements.authCode.value.trim();
-        const password = elements.authPassword.value.trim();
-        const nombre = elements.authNombre.value.trim();
-
-        if (!code || !password) {
-            setError('Completa código y contraseña');
-            return;
-        }
 
         const endpoint = isRegisterMode ? '/register' : '/login';
         const body = {
