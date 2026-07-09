@@ -43,15 +43,11 @@ def health() -> dict[str, str]:
 
 
 @app.post("/register")
-def register(
+async def register(
     request: Request,
     db: Session = Depends(get_db),
 ) -> dict:
-    data = request.json()
-    if hasattr(data, "__await__"):
-        import asyncio
-        data = asyncio.get_event_loop().run_until_complete(data)
-    data = dict(data)
+    data = await request.json()
 
     code = data.get("code")
     password = data.get("password")
@@ -82,15 +78,11 @@ def register(
 
 
 @app.post("/login")
-def login(
+async def login(
     request: Request,
     db: Session = Depends(get_db),
 ) -> dict:
-    data = request.json()
-    if hasattr(data, "__await__"):
-        import asyncio
-        data = asyncio.get_event_loop().run_until_complete(data)
-    data = dict(data)
+    data = await request.json()
 
     code = data.get("code")
     password = data.get("password")
