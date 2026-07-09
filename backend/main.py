@@ -297,7 +297,7 @@ async def create_task(
         db.refresh(task)
     except Exception as exc:
         logger.exception("[tasks] error creando tarea")
-        raise HTTPException(status_code=500, detail="Error al guardar la tarea") from exc
+        raise HTTPException(status_code=500, detail=f"Error al guardar la tarea: {exc}")
 
     return {
         "ok": True,
