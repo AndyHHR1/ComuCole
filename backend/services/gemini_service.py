@@ -47,21 +47,54 @@ def _limpiar_json_respuesta(texto: str) -> str:
     return texto.strip()
 
 
+def _obtener_modelo_disponible(cliente, modelo_preferido: str) -> str:
+    try:
+        modelos = list(cliente.models.list())
+    except Exception as exc:
+        logger.warning("No se pudo listar los modelos disponibles: %s", exc)
+        return modelo_preferido
+
+    modelos_por_nombre = {m.name: m for m in modelos if hasattr(m, "name") and m.name}
+
+    candidatos = [
+        m for m in modelos_por_nombre.values()
+        if any(metodo in (m.supported_actions or []) for metodo in ["generateContent", "generate_content"])
+    ]
+
+    if candidatos:
+        return candidatos[0].name
+
+    if modelo_preferido in modelos_por_nombre:
+        return modelo_preferido
+
+    return modelo_preferido
+
+
 def procesar_documento_con_gemini(texto_crudo: str) -> dict:
     api_key = os.getenv("GOOGLE_API_KEY")
     if not api_key:
         raise RuntimeError("GOOGLE_API_KEY no está definida en las variables de entorno.")
 
-    modelo = os.getenv("GEMINI_MODEL", "gemini-1.0-pro")
+    modelo_preferido = os.getenv("GEMINI_MODEL", "gemini-1.0-pro")
     cliente = genai.Client(api_key=api_key)
+    modelo = _obtener_modelo_disponible(cliente, modelo_preferido)
+
+    if modelo != modelo_preferido:
+        logger.info("Usando modelo alternativo de Gemini: %s", modelo)
 
     prompt = PROMPT_BASE + texto_crudo
     try:
         respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
         texto_respuesta = respuesta.text
     except genai_errors.ClientError as exc:
-        logger.exception("Error en la API de Gemini")
-        raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
+        if exc.status_code == 404:
+            modelo = _obtener_modelo_disponible(cliente, modelo_preferido)
+            logger.info("Reintentando con modelo alternativo tras 404: %s", modelo)
+            respuesta = cliente.models.generate_content(model=modelo, contents=prompt)
+            texto_respuesta = respuesta.text
+        else:
+            logger.exception("Error en la API de Gemini")
+            raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
     except Exception as exc:
         logger.exception("Error inesperado al llamar a Gemini")
         raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
