@@ -107,6 +107,7 @@ async def login(
 
     code = data.get("code")
     password = data.get("password")
+    role = data.get("role")
 
     if not code or not password:
         raise HTTPException(status_code=400, detail="Faltan credenciales")
@@ -114,6 +115,12 @@ async def login(
     user = db.query(User).filter(User.code == code).first()
     if not user or not verify_password(password, user.password_hash):
         raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+    if role and user.role.value != role:
+        raise HTTPException(
+            status_code=403,
+            detail=f"Esta cuenta está registrada como {user.role.value}. Usa el perfil correcto.",
+        )
 
     access_token = create_access_token(data={"sub": user.code})
     return {

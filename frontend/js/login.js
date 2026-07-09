@@ -72,6 +72,7 @@
         const body = {
             code,
             password,
+            role: selectedRole,
         };
 
         if (isRegisterMode) {
@@ -80,7 +81,6 @@
                 return;
             }
             body.full_name = nombre;
-            body.role = selectedRole;
         }
 
         try {
