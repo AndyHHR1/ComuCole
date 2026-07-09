@@ -217,10 +217,12 @@
 
         elements.btnLogin.addEventListener('click', (e) => {
             e.preventDefault();
+            elements.formAuth.dispatchEvent(new Event('submit'));
         });
 
         elements.btnRegister.addEventListener('click', (e) => {
             e.preventDefault();
+            elements.formAuth.dispatchEvent(new Event('submit'));
         });
 
         elements.formAuth.addEventListener('submit', handleSubmit);
