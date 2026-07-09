@@ -49,14 +49,18 @@
 
     function setMode(register) {
         isRegisterMode = register;
-        elements.btnLogin.classList.toggle('hidden', register);
-        elements.btnRegister.classList.toggle('hidden', !register);
-        elements.groupNombre.classList.toggle('hidden', !register);
-        elements.groupAño.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
-        elements.groupSeccion.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
-        elements.groupColorAula.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
-        elements.authHint.textContent = register ? 'Completa tus datos para registrarte' : 'Inicia sesión con tu código';
-        elements.btnToggleMode.textContent = register ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+        elements.btnLogin?.classList.toggle('hidden', register);
+        elements.btnRegister?.classList.toggle('hidden', !register);
+        elements.groupNombre?.classList.toggle('hidden', !register);
+        elements.groupAño?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
+        elements.groupSeccion?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
+        elements.groupColorAula?.classList.toggle('hidden', !register || selectedRole !== ROL_PADRE);
+        if (elements.authHint) {
+            elements.authHint.textContent = register ? 'Completa tus datos para registrarte' : 'Inicia sesión con tu código';
+        }
+        if (elements.btnToggleMode) {
+            elements.btnToggleMode.textContent = register ? '¿Ya tienes cuenta? Inicia sesión' : '¿No tienes cuenta? Regístrate';
+        }
     }
 
     function redirect(role) {
