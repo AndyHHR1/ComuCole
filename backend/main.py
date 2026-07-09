@@ -1,6 +1,5 @@
 import logging
 import os
-from collections import defaultdict
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile, Depends
@@ -11,8 +10,15 @@ from sqlalchemy.orm import Session
 from backend.config import FRONTEND_DIR
 from backend.database.session import Base, engine, get_db
 from backend.models.user import User, UserRole
-from backend.models.task import Task
 from backend.models.schemas import ComuColeResponse
+from backend.services.auth import (
+    hash_password,
+    verify_password,
+    create_access_token,
+    get_current_user,
+    get_current_teacher,
+    get_current_parent,
+)
 from backend.services.docx_processor import extraer_texto_docx
 from backend.services.gemini_service import procesar_documento_con_gemini
 
@@ -33,6 +39,75 @@ def startup():
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.post("/register")
+def register(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    data = request.json()
+    if hasattr(data, "__await__"):
+        import asyncio
+        data = asyncio.get_event_loop().run_until_complete(data)
+    data = dict(data)
+
+    code = data.get("code")
+    password = data.get("password")
+    role = data.get("role")
+    full_name = data.get("full_name")
+
+    if not code or not password or not role:
+        raise HTTPException(status_code=400, detail="Faltan campos requeridos")
+
+    if role not in ("teacher", "parent"):
+        raise HTTPException(status_code=400, detail="Rol inválido")
+
+    existing = db.query(User).filter(User.code == code).first()
+    if existing:
+        raise HTTPException(status_code=400, detail="El código ya está registrado")
+
+    user = User(
+        code=code,
+        password_hash=hash_password(password),
+        role=UserRole(role),
+        full_name=full_name,
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    return {"ok": True, "user_id": user.id, "role": user.role.value}
+
+
+@app.post("/login")
+def login(
+    request: Request,
+    db: Session = Depends(get_db),
+) -> dict:
+    data = request.json()
+    if hasattr(data, "__await__"):
+        import asyncio
+        data = asyncio.get_event_loop().run_until_complete(data)
+    data = dict(data)
+
+    code = data.get("code")
+    password = data.get("password")
+
+    if not code or not password:
+        raise HTTPException(status_code=400, detail="Faltan credenciales")
+
+    user = db.query(User).filter(User.code == code).first()
+    if not user or not verify_password(password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Credenciales inválidas")
+
+    access_token = create_access_token(data={"sub": user.code})
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "role": user.role.value,
+        "full_name": user.full_name,
+    }
 
 
 @app.post("/procesar-docx", response_model=ComuColeResponse)
@@ -63,29 +138,25 @@ async def procesar_docx(archivo: UploadFile = File(...)) -> JSONResponse:
 
 
 @app.post("/marcar-revisada")
-async def marcar_revisada(request: Request, db: Session = Depends(get_db)) -> dict[str, bool | int]:
-    data = await request.json()
-    parent_id = data.get("parent_id", "anon")
-    user = db.query(User).filter(User.code == str(parent_id)).first()
-    if user and user.role == UserRole.parent:
-        user.points = (user.points or 0) + 1
-        db.commit()
-        db.refresh(user)
-        return {"ok": True, "puntos": user.points or 0}
-    return {"ok": True, "puntos": 0}
+async def marcar_revisada(
+    current_user: User = Depends(get_current_parent),
+    db: Session = Depends(get_db),
+) -> dict[str, bool | int]:
+    current_user.points = (current_user.points or 0) + 1
+    db.commit()
+    db.refresh(current_user)
+    return {"ok": True, "puntos": current_user.points or 0}
 
 
 @app.post("/marcar-cumplida")
-async def marcar_cumplida(request: Request, db: Session = Depends(get_db)) -> dict[str, bool | int]:
-    data = await request.json()
-    parent_id = data.get("parent_id", "anon")
-    user = db.query(User).filter(User.code == str(parent_id)).first()
-    if user and user.role == UserRole.parent:
-        user.points = (user.points or 0) + 2
-        db.commit()
-        db.refresh(user)
-        return {"ok": True, "puntos": user.points or 0}
-    return {"ok": True, "puntos": 0}
+async def marcar_cumplida(
+    current_user: User = Depends(get_current_parent),
+    db: Session = Depends(get_db),
+) -> dict[str, bool | int]:
+    current_user.points = (current_user.points or 0) + 2
+    db.commit()
+    db.refresh(current_user)
+    return {"ok": True, "puntos": current_user.points or 0}
 
 
 @app.get("/ranking")
@@ -96,6 +167,27 @@ async def get_ranking(db: Session = Depends(get_db)) -> dict[str, list[dict[str,
         for i, u in enumerate(sorted(padres, key=lambda x: x.points or 0, reverse=True)[:20])
     ]
     return {"ranking": ranking}
+
+
+@app.get("/me/tasks")
+async def get_my_tasks(
+    current_user: User = Depends(get_current_parent),
+    db: Session = Depends(get_db),
+) -> dict:
+    tasks = db.query(Task).filter(Task.parent_id == current_user.id).all()
+    return {
+        "tasks": [
+            {
+                "id": t.id,
+                "title": t.title,
+                "description": t.description,
+                "status": t.status,
+                "points": t.points,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+            }
+            for t in tasks
+        ]
+    }
 
 
 if FRONTEND_DIR.exists():
