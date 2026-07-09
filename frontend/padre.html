@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ComuCole - Padres de Familia</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="css/padre.css">
+</head>
+<body>
+    <div class="padre-container">
+        <header class="padre-header">
+            <div class="header-content">
+                <h1 class="logo">ComuCole</h1>
+                <p class="header-subtitle">Comunicación Escolar</p>
+            </div>
+            <div class="header-actions">
+                <div class="mis-puntos" id="mis-puntos">
+                    <span class="puntos-icon">⭐</span>
+                    <span class="puntos-valor" id="puntos-valor">0</span>
+                </div>
+                <div class="header-badge">
+                    <span class="badge-icon">👨‍👩‍👧</span>
+                    <span class="badge-text">Padres</span>
+                </div>
+            </div>
+        </header>
+
+        <nav class="tab-bar">
+            <button class="tab active" data-tab="clase" id="tab-clase">📚 Clase del Día</button>
+            <button class="tab" data-tab="ranking" id="tab-ranking">🏆 Ranking</button>
+        </nav>
+
+        <main class="padre-main">
+            <section id="vista-carga" class="screen active">
+                <div class="empty-state">
+                    <div class="empty-icon">📱</div>
+                    <h2>Sin novedades</h2>
+                    <p>Cuando la docente publique una nueva actividad, aparecerá aquí.</p>
+                </div>
+            </section>
+
+            <section id="vista-contenido" class="screen">
+                <div id="card-clase" class="card-clase">
+                    <div class="card-header">
+                        <div class="categoria-emojis" id="categoria-emojis"></div>
+                        <div class="semaforo-badge" id="semaforo-badge"></div>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="seccion">
+                            <h3 class="seccion-titulo">📚 Clase del Día</h3>
+                            <div id="resumen_sesion" class="seccion-contenido"></div>
+                        </div>
+
+                        <div class="seccion seccion-tarea">
+                            <h3 class="seccion-titulo">📝 Tarea para Casa</h3>
+                            <div id="tarea" class="tarea-box"></div>
+                            <div class="action-buttons">
+                                <button type="button" id="btn-revisada" class="btn-action btn-revisada">
+                                    <span class="btn-icon">👁️</span>
+                                    <span class="btn-label">Revisada</span>
+                                </button>
+                                <button type="button" id="btn-cumplida" class="btn-action btn-cumplida">
+                                    <span class="btn-icon">✅</span>
+                                    <span class="btn-label">Cumplida</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="materiales-alerta" class="materiales-alerta hidden">
+                            <h3 class="seccion-titulo">🎒 Materiales Necesarios</h3>
+                            <ul id="materiales-lista" class="materiales-lista"></ul>
+                        </div>
+                    </div>
+
+                    <div class="card-footer">
+                        <span class="footer-hint">Información proporcionada por la docente</span>
+                    </div>
+                </div>
+            </section>
+
+            <section id="vista-ranking" class="screen">
+                <div class="card-ranking">
+                    <div class="ranking-header">
+                        <h2 class="ranking-titulo">🏆 Tabla de Posiciones</h2>
+                        <p class="ranking-subtitulo">Aula - Clase del Día</p>
+                    </div>
+
+                    <div id="ranking-loading" class="ranking-loading hidden">
+                        <div class="spinner-small"></div>
+                        <span>Cargando ranking...</span>
+                    </div>
+
+                    <div id="ranking-empty" class="ranking-empty hidden">
+                        <div class="empty-icon">🏅</div>
+                        <p>Aún no hay participaciones. ¡Sé el primero en marcar tu tarea!</p>
+                    </div>
+
+                    <div id="ranking-content" class="ranking-content hidden">
+                        <table class="ranking-table">
+                            <thead>
+                                <tr>
+                                    <th scope="col">#</th>
+                                    <th scope="col">Participante</th>
+                                    <th scope="col" class="text-right">Puntos</th>
+                                </tr>
+                            </thead>
+                            <tbody id="ranking-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <footer class="padre-footer">
+            <p>ComuCole &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script src="js/padre.js"></script>
+</body>
+</html>
