@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 
 from backend.config import FRONTEND_DIR
 from backend.database.session import Base, engine, get_db
+from backend.models.task import Task
 from backend.models.user import User, UserRole
 from backend.models.schemas import ComuColeResponse
 from backend.services.auth import (
@@ -175,6 +176,71 @@ async def get_my_tasks(
     db: Session = Depends(get_db),
 ) -> dict:
     tasks = db.query(Task).filter(Task.parent_id == current_user.id).all()
+    return {
+        "tasks": [
+            {
+                "id": t.id,
+                "title": t.title,
+                "description": t.description,
+                "status": t.status,
+                "points": t.points,
+                "created_at": t.created_at.isoformat() if t.created_at else None,
+            }
+            for t in tasks
+        ]
+    }
+
+
+@app.post("/tasks")
+async def create_task(
+    request: Request,
+    current_user: User = Depends(get_current_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    data = await request.json()
+    title = data.get("title")
+    description = data.get("description")
+    parent_code = data.get("parent_code")
+    file_url = data.get("file_url")
+
+    if not title:
+        raise HTTPException(status_code=400, detail="El título es requerido")
+
+    parent_id = None
+    if parent_code:
+        parent = db.query(User).filter(User.code == parent_code, User.role == UserRole.parent).first()
+        if parent:
+            parent_id = parent.id
+
+    task = Task(
+        title=title,
+        description=description,
+        teacher_id=current_user.id,
+        parent_id=parent_id,
+        file_url=file_url,
+        status="pending",
+        points=0,
+    )
+    db.add(task)
+    db.commit()
+    db.refresh(task)
+
+    return {
+        "ok": True,
+        "task_id": task.id,
+        "title": task.title,
+        "description": task.description,
+        "parent_id": task.parent_id,
+        "status": task.status,
+    }
+
+
+@app.get("/teacher/tasks")
+async def get_teacher_tasks(
+    current_user: User = Depends(get_current_teacher),
+    db: Session = Depends(get_db),
+) -> dict:
+    tasks = db.query(Task).filter(Task.teacher_id == current_user.id).all()
     return {
         "tasks": [
             {

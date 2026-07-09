@@ -98,6 +98,7 @@
                 localStorage.setItem('comucole_token', data.access_token);
                 localStorage.setItem('comucole_role', data.role);
                 localStorage.setItem('comucole_full_name', data.full_name || '');
+                localStorage.setItem('comucole_code', code);
             } else if (isRegisterMode) {
                 setMode(false);
                 elements.authPassword.value = '';

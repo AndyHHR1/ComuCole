@@ -148,6 +148,13 @@
             return;
         }
 
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            alert('Sesión expirada. Inicia sesión nuevamente.');
+            window.location.href = '/';
+            return;
+        }
+
         const btnText = elements.btnPublicar.querySelector('.btn-text');
         const btnLoader = elements.btnPublicar.querySelector('.btn-loader');
 
@@ -156,7 +163,7 @@
         btnLoader.classList.remove('hidden');
 
         try {
-            await simulacionPublicacion(datos);
+            await publicarEnAPI(datos, token);
             showScreen('exito');
         } catch (error) {
             console.error('Error publicando:', error);
@@ -168,13 +175,30 @@
         }
     }
 
-    function simulacionPublicacion(datos) {
-        return new Promise((resolve) => {
-            console.log('Publicando contenido a la base de datos de padres:', datos);
-            setTimeout(() => {
-                resolve({ success: true, message: 'Contenido publicado correctamente' });
-            }, 1500);
+    async function publicarEnAPI(datos, token) {
+        const tareaTexto = datos.tarea;
+        const titulo = tareaTexto.length > 80 ? tareaTexto.substring(0, 77) + '...' : tareaTexto;
+
+        const body = {
+            title: titulo,
+            description: datos.resumen_sesion,
+            parent_code: '',
+            file_url: '',
+        };
+
+        const response = await fetch(`${API_BASE_URL}/tasks`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
         });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.detail || `Error ${response.status}: ${response.statusText}`);
+        }
     }
 
     function nuevaPublicacion() {
@@ -229,7 +253,10 @@
         const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
         if (btnCerrarSesion) {
             btnCerrarSesion.addEventListener('click', () => {
+                localStorage.removeItem('comucole_token');
                 localStorage.removeItem('comucole_rol');
+                localStorage.removeItem('comucole_code');
+                localStorage.removeItem('comucole_full_name');
                 window.location.href = '/';
             });
         }

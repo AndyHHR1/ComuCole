@@ -63,24 +63,9 @@
         rankingBody: document.getElementById('ranking-body'),
     };
 
-    let miId = localStorage.getItem('comucole_parent_id');
     let misPuntos = 0;
     let revisadaMarcada = false;
     let cumplidaMarcada = false;
-
-    function generarParentId() {
-        const timestamp = Date.now().toString(36);
-        const random = Math.random().toString(36).substring(2, 8);
-        return `padre_${timestamp}_${random}`;
-    }
-
-    function obtenerMiId() {
-        if (!miId) {
-            miId = generarParentId();
-            localStorage.setItem('comucole_parent_id', miId);
-        }
-        return miId;
-    }
 
     function showScreen(name) {
         Object.values(elements.screens).forEach(screen => screen.classList.remove('active'));
@@ -158,13 +143,22 @@
     async function marcarRevisada() {
         if (revisadaMarcada) return;
 
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            alert('Sesión expirada. Inicia sesión nuevamente.');
+            window.location.href = '/';
+            return;
+        }
+
         elements.btnRevisada.disabled = true;
 
         try {
             const response = await fetch(`${API_BASE_URL}/marcar-revisada`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ parent_id: obtenerMiId() }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
             if (!response.ok) {
@@ -185,13 +179,22 @@
     async function marcarCumplida() {
         if (cumplidaMarcada) return;
 
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            alert('Sesión expirada. Inicia sesión nuevamente.');
+            window.location.href = '/';
+            return;
+        }
+
         elements.btnCumplida.disabled = true;
 
         try {
             const response = await fetch(`${API_BASE_URL}/marcar-cumplida`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ parent_id: obtenerMiId() }),
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`,
+                },
             });
 
             if (!response.ok) {
@@ -210,12 +213,22 @@
     }
 
     async function cargarRanking() {
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            window.location.href = '/';
+            return;
+        }
+
         elements.rankingLoading.classList.remove('hidden');
         elements.rankingEmpty.classList.add('hidden');
         elements.rankingContent.classList.add('hidden');
 
         try {
-            const response = await fetch(`${API_BASE_URL}/ranking`);
+            const response = await fetch(`${API_BASE_URL}/ranking`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
 
             if (!response.ok) {
                 throw new Error(`Error ${response.status}`);
@@ -242,10 +255,12 @@
         elements.rankingEmpty.classList.add('hidden');
         elements.rankingContent.classList.remove('hidden');
 
+        const miCode = localStorage.getItem('comucole_code');
+
         elements.rankingBody.innerHTML = ranking.map((entry, index) => {
-            const esYo = entry.id === miId;
+            const esYo = miCode && entry.id === miCode;
             const rowClass = esYo ? 'class="row-yo"' : '';
-            const nombre = entry.id === miId ? 'Tú' : anonimizarId(entry.id);
+            const nombre = esYo ? 'Tú' : anonimizarId(entry.id);
             const puntosClass = esYo ? 'class="ranking-puntos"' : '';
 
             return `
@@ -269,22 +284,65 @@
         return div.innerHTML;
     }
 
-    function cargarDatosDeDemo() {
-        const datosDemo = {
-            resumen_sesion: 'Hoy los estudiantes trabajaron en la introducción a las fracciones utilizando material concreto y juegos interactivos. Se realizó una actividad grupal donde cada equipo armó pizzas de papel representando diferentes fracciones.',
-            tarea: 'Completa la ficha de práctica de fracciones en el cuaderno (página 42) y recorta las piezas de pizza para la próxima clase.',
-            materiales: ['Fichas de práctica', 'Tijeras', 'Pegamento'],
-            semaforo: 'amarillo',
-            categoria: 'cognitivo',
-        };
+    async function cargarDatosDeDemo() {
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+            return;
+        }
 
-        setTimeout(() => {
-            renderizarClase(datosDemo);
-        }, 800);
+        try {
+            const response = await fetch(`${API_BASE_URL}/me/tasks`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                if (response.status === 401) {
+                    localStorage.removeItem('comucole_token');
+                    localStorage.removeItem('comucole_rol');
+                    localStorage.removeItem('comucole_code');
+                    localStorage.removeItem('comucole_full_name');
+                    window.location.href = '/';
+                    return;
+                }
+                throw new Error(`Error ${response.status}`);
+            }
+
+            const data = await response.json();
+            const tasks = data.tasks || [];
+
+            if (tasks.length === 0) {
+                showScreen('carga');
+                return;
+            }
+
+            const ultimaTarea = tasks[tasks.length - 1];
+            renderizarClase({
+                resumen_sesion: ultimaTarea.description || '',
+                tarea: ultimaTarea.title || '',
+                materiales: [],
+                semaforo: 'amarillo',
+                categoria: 'cognitivo',
+            });
+        } catch (error) {
+            console.error('Error cargando tareas:', error);
+            showScreen('carga');
+        }
     }
 
     function init() {
-        obtenerMiId();
+        const token = localStorage.getItem('comucole_token');
+        if (!token) {
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 1000);
+            return;
+        }
+
         showScreen('carga');
 
         elements.tabs.clase.addEventListener('click', () => showTab('clase'));
@@ -296,7 +354,10 @@
         const btnCerrarSesion = document.getElementById('btn-cerrar-sesion');
         if (btnCerrarSesion) {
             btnCerrarSesion.addEventListener('click', () => {
+                localStorage.removeItem('comucole_token');
                 localStorage.removeItem('comucole_rol');
+                localStorage.removeItem('comucole_code');
+                localStorage.removeItem('comucole_full_name');
                 window.location.href = '/';
             });
         }
