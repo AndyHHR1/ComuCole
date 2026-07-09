@@ -34,7 +34,10 @@ app = FastAPI(
 
 @app.on_event("startup")
 def startup():
-    Base.metadata.create_all(bind=engine)
+    import os
+    db_url = os.getenv("DATABASE_URL", "NOT_SET")
+    logger.info(f"[startup] DATABASE_URL={db_url}")
+    Base.metadata.create_all(bind=engine, checkfirst=True)
 
 
 @app.get("/health")
