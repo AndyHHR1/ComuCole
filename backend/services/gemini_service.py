@@ -75,13 +75,15 @@ def _intentar_generate_content(
             )
             return respuesta.text
         except genai_errors.ClientError as exc:
-            if exc.status_code == 404:
+            status_code = getattr(exc, 'status_code', None)
+            mensaje = getattr(exc, 'message', str(exc))
+            if status_code == 404:
                 raise RuntimeError(f"Modelo no disponible: {modelo}") from exc
-            if exc.status_code in (429, 503):
+            if status_code in (429, 503):
                 espera = GEMINI_RETRY_BASE_DELAY * (2 ** intento)
                 logger.warning(
                     "Error %s en Gemini. Reintento %s/%s en %ss",
-                    exc.status_code,
+                    status_code,
                     intento + 1,
                     max_reintentos,
                     espera,
@@ -89,7 +91,7 @@ def _intentar_generate_content(
                 time.sleep(espera)
                 ultimo_error = exc
                 continue
-            raise RuntimeError(f"Error en la API de Gemini ({modelo}): {exc.message}") from exc
+            raise RuntimeError(f"Error en la API de Gemini ({modelo}): {mensaje}") from exc
         except Exception as exc:
             raise RuntimeError(f"Error inesperado al llamar a Gemini: {exc}") from exc
 
