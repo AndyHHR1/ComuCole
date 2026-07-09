@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ComuCole - Panel del Docente</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>ComuCole</h1>
+            <p class="subtitle">Plataforma de Comunicación Escolar</p>
+        </header>
+
+        <main>
+            <section id="pantalla-carga" class="screen active">
+                <div class="card">
+                    <h2>Cargar Planificación</h2>
+                    <p class="description">Arrastra tu archivo .docx o haz clic para seleccionarlo</p>
+
+                    <div id="drop-zone" class="drop-zone">
+                        <div class="drop-zone-content">
+                            <svg class="upload-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                <polyline points="17 8 12 3 7 8"/>
+                                <line x1="12" y1="3" x2="12" y2="15"/>
+                            </svg>
+                            <p class="drop-text">Suelta tu archivo aquí</p>
+                            <p class="drop-subtext">o haz clic para buscar</p>
+                        </div>
+                        <input type="file" id="file-input" accept=".docx" hidden>
+                    </div>
+
+                    <div id="file-info" class="file-info hidden">
+                        <span id="file-name"></span>
+                        <button id="remove-file" class="btn-remove" title="Quitar archivo">&times;</button>
+                    </div>
+
+                    <div id="loading" class="loading hidden">
+                        <div class="spinner"></div>
+                        <p>Procesando documento con IA...</p>
+                    </div>
+
+                    <div id="error-msg" class="error-msg hidden"></div>
+                </div>
+            </section>
+
+            <section id="pantalla-edicion" class="screen">
+                <div class="card">
+                    <h2>Previsualización y Edición</h2>
+                    <p class="description">Revisa y ajusta la información generada antes de publicar</p>
+
+                    <form id="form-edicion" class="form-edicion">
+                        <div class="form-group">
+                            <label for="resumen_sesion">Resumen de la Sesión</label>
+                            <textarea id="resumen_sesion" name="resumen_sesion" rows="4" placeholder="Resumen ejecutivo..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tarea">Tarea para Casa</label>
+                            <textarea id="tarea" name="tarea" rows="3" placeholder="Instrucción de la tarea..."></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="materiales">Materiales</label>
+                            <textarea id="materiales" name="materiales" rows="2" placeholder="Una descripción por línea..."></textarea>
+                            <small class="hint">Escribe un material por línea</small>
+                        </div>
+
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="semaforo">Semáforo de Tiempo</label>
+                                <select id="semaforo" name="semaforo">
+                                    <option value="rojo">Rojo - Para ya / Mucha carga</option>
+                                    <option value="amarillo">Amarillo - Tiempo moderado</option>
+                                    <option value="verde">Verde - Tiempo amplio</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="categoria">Categoría</label>
+                                <select id="categoria" name="categoria">
+                                    <option value="cognitivo">Cognitivo (Estudio, lectura, matemática)</option>
+                                    <option value="manual">Manual (Maquetas, arte, materiales)</option>
+                                    <option value="psicomotriz">Psicomotriz (Educación física)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="btn-volver" class="btn btn-secondary">Volver</button>
+                            <button type="submit" id="btn-publicar" class="btn btn-primary">
+                                <span class="btn-text">Publicar</span>
+                                <span class="btn-loader hidden">
+                                    <span class="spinner-small"></span>
+                                    Enviando...
+                                </span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section id="pantalla-exito" class="screen">
+                <div class="card card-success">
+                    <div class="success-icon">✓</div>
+                    <h2>¡Publicado con éxito!</h2>
+                    <p>La información ha sido enviada a los padres de familia.</p>
+                    <button id="btn-nueva-publicacion" class="btn btn-primary">Nueva Publicación</button>
+                </div>
+            </section>
+        </main>
+
+        <footer class="footer">
+            <p>ComuCole &copy; 2025 - Plataforma Escolar</p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
