@@ -97,6 +97,75 @@
             }
 
             if (!isRegisterMode && data.access_token) {
+                if (data.role !== selectedRole) {
+                    setError(`Esta cuenta está registrada como ${data.role === 'teacher' ? 'docente' : 'padre'}. Usa el perfil correcto.`);
+                    return;
+                }
+                localStorage.setItem('comucole_token', data.access_token);
+                localStorage.setItem('comucole_role', data.role);
+                localStorage.setItem('comucole_full_name', data.full_name || '');
+                localStorage.setItem('comucole_code', code);
+                console.log('[login] guardado rol=', data.role, 'code=', code);
+                redirect(data.role);
+                return;
+            } else if (isRegisterMode) {
+                setMode(false);
+                elements.authPassword.value = '';
+                elements.authNombre.value = '';
+                setError('');
+                setError('Registrado. Ahora inicia sesión.');
+                return;
+            }
+
+            redirect(selectedRole);
+        } catch (err) {
+            console.error('[login] error', err);
+            setError('Error de conexión');
+        }
+    }
+
+    async function handleSubmit(e) {
+        e.preventDefault();
+        clearError();
+
+        const code = elements.authCode.value.trim();
+        const password = elements.authPassword.value.trim();
+        const nombre = elements.authNombre.value.trim();
+
+        if (!code || !password) {
+            setError('Completa código y contraseña');
+            return;
+        }
+
+        const endpoint = isRegisterMode ? '/register' : '/login';
+        const body = {
+            code,
+            password,
+            role: selectedRole,
+        };
+
+        if (isRegisterMode) {
+            if (!nombre) {
+                setError('Ingresa tu nombre completo');
+                return;
+            }
+            body.full_name = nombre;
+        }
+
+        try {
+            const res = await fetch(API_BASE + endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body),
+            });
+
+            const data = await res.json();
+            if (!res.ok) {
+                setError(data.detail || 'Error en la solicitud');
+                return;
+            }
+
+            if (!isRegisterMode && data.access_token) {
                 localStorage.setItem('comucole_token', data.access_token);
                 localStorage.setItem('comucole_role', data.role);
                 localStorage.setItem('comucole_full_name', data.full_name || '');
@@ -148,12 +217,10 @@
 
         elements.btnLogin.addEventListener('click', (e) => {
             e.preventDefault();
-            handleSubmit(e);
         });
 
         elements.btnRegister.addEventListener('click', (e) => {
             e.preventDefault();
-            handleSubmit(e);
         });
 
         elements.formAuth.addEventListener('submit', handleSubmit);
