@@ -39,22 +39,23 @@
                     <form id="form-auth" class="form-edicion" autocomplete="off">
                         <div class="form-group">
                             <label for="auth-code">Código</label>
-                            <input type="text" id="auth-code" placeholder="Ej: DOC001" required>
+                            <input type="text" id="auth-code" class="form-group textarea" placeholder="Ej: DOC001" required>
                         </div>
                         <div class="form-group">
                             <label for="auth-password">Contraseña</label>
-                            <input type="password" id="auth-password" placeholder="Tu contraseña" required>
+                            <input type="password" id="auth-password" class="form-group textarea" placeholder="Tu contraseña" required>
                         </div>
                         <div class="form-group hidden" id="group-nombre">
                             <label for="auth-nombre">Nombre completo</label>
-                            <input type="text" id="auth-nombre" placeholder="Ej: Juan Pérez">
+                            <input type="text" id="auth-nombre" class="form-group textarea" placeholder="Ej: Juan Pérez">
                         </div>
                         <div class="form-actions">
                             <button type="button" id="btn-volver" class="btn btn-secondary">Volver</button>
-                            <button type="button" id="btn-login" class="btn btn-primary">Iniciar Sesión</button>
-                            <button type="button" id="btn-register" class="btn btn-primary hidden">Registrarse</button>
+                            <button type="submit" id="btn-login" class="btn btn-primary">Iniciar Sesión</button>
+                            <button type="submit" id="btn-register" class="btn btn-primary hidden">Registrarse</button>
                         </div>
                         <p id="auth-error" class="error-msg hidden"></p>
+                        <button type="button" id="btn-toggle-mode" class="btn-toggle-mode">¿No tienes cuenta? Regístrate</button>
                     </form>
                 </div>
             </div>
