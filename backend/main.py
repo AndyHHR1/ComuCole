@@ -89,6 +89,10 @@ async def register(
     if role not in ("teacher", "parent"):
         raise HTTPException(status_code=400, detail="Rol inválido")
 
+    if role == "parent":
+        if not año or not seccion or not color_aula:
+            raise HTTPException(status_code=400, detail="Faltan datos del aula: año, sección y color son requeridos")
+
     existing = db.query(User).filter(User.code == code).first()
     if existing:
         raise HTTPException(status_code=400, detail="El código ya está registrado")

@@ -58,15 +58,12 @@
         elements.btnLogin?.classList.toggle('hidden', register);
         elements.btnRegister?.classList.toggle('hidden', !register);
         elements.groupNombre?.classList.toggle('hidden', !register);
-        if (selectedRole === ROL_PADRE) {
-            elements.groupAño?.classList.toggle('hidden', !register);
-            elements.groupSeccion?.classList.toggle('hidden', !register);
-            elements.groupColorAula?.classList.toggle('hidden', !register);
-        } else {
-            elements.groupAño?.classList.add('hidden');
-            elements.groupSeccion?.classList.add('hidden');
-            elements.groupColorAula?.classList.add('hidden');
-        }
+
+        const showAula = register && selectedRole === ROL_PADRE;
+        elements.groupAño?.classList.toggle('hidden', !showAula);
+        elements.groupSeccion?.classList.toggle('hidden', !showAula);
+        elements.groupColorAula?.classList.toggle('hidden', !showAula);
+
         if (elements.authHint) {
             elements.authHint.textContent = register ? 'Completa tus datos para registrarte' : 'Inicia sesión con tu código';
         }
@@ -109,8 +106,13 @@
                 return;
             }
             body.full_name = nombre;
+            body.role = selectedRole;
 
             if (selectedRole === ROL_PADRE) {
+                if (!año || !seccion || !colorAula) {
+                    setError('Selecciona el año, sección y color del aula');
+                    return;
+                }
                 body.año = año;
                 body.seccion = seccion;
                 body.color_aula = colorAula;
